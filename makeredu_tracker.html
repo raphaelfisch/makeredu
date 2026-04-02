@@ -35,7 +35,21 @@ html, body { max-width:100%; overflow-x:hidden; }
 body { font-family:var(--font); background:var(--bg); color:var(--text); min-height:100vh; min-height:100dvh; }
 
 .app-header { background:var(--text); color:white; padding:0; height:52px; display:flex; align-items:center; position:sticky; top:0; z-index:200; }
-.app-header-inner { max-width:1400px; width:100%; margin:0 auto; padding:0 24px; display:flex; align-items:center; gap:12px; height:52px; }
+.app-header-inner { max-width:1400px; width:100%; margin:0 auto; padding:0 24px; display:flex; align-items:center; gap:12px; height:52px; position:relative; }
+.proj-item { display:flex; align-items:center; padding:10px 14px; cursor:pointer; gap:8px; font-size:13px; border-bottom:1px solid var(--border-lt); color:var(--text); }
+.proj-item:hover { background:var(--bg); }
+.proj-item.active { font-weight:600; }
+.proj-item.active::before { content:'✓'; color:var(--r3); font-size:11px; margin-right:2px; }
+.proj-name { flex:1; }
+.proj-delete { background:none; border:none; color:var(--dim2); cursor:pointer; font-size:11px; padding:2px 5px; border-radius:3px; transition:all 0.15s; line-height:1; }
+.proj-delete:hover { color:var(--r1); background:var(--r1-bg); }
+.proj-new { padding:10px 14px; font-size:13px; color:var(--dim); cursor:pointer; font-weight:500; }
+.proj-new:hover { background:var(--bg); color:var(--text); }
+.lbl-edit-wrap { display:flex; align-items:center; gap:6px; }
+.lbl-edit-input { font-size:13px; font-weight:600; font-family:var(--font); border:none; border-bottom:1.5px solid var(--border); background:transparent; outline:none; color:var(--text); width:120px; padding:1px 2px; }
+.lbl-edit-input:focus { border-bottom-color:var(--text); }
+.lbl-edit-icon { font-size:11px; color:var(--dim2); cursor:pointer; padding:2px 4px; border-radius:3px; }
+.lbl-edit-icon:hover { color:var(--text); background:var(--bg); }
 .app-header-link { display:flex; align-items:center; gap:10px; text-decoration:none; flex-shrink:0; opacity:1; transition:opacity 0.15s; }
 .app-header-link:hover { opacity:0.75; }
 .app-header-mark { width:28px; height:28px; background:#FFF; border-radius:6px; display:grid; place-items:center; color:#1A1A1A; font-weight:800; font-size:13px; flex-shrink:0; }
@@ -230,13 +244,14 @@ table.overview-table { width:100%; border-collapse:collapse; font-size:12px; }
 
 <div class="app-header">
   <div class="app-header-inner">
-    <a href="https://raphaelfisch.github.io/makeredu" class="app-header-link">
+    <a href="https://raphaelfisch.github.io/tools/makeredu.html" class="app-header-link">
       <div class="app-header-mark">M</div>
       <span class="app-header-brand">MakerEdu</span>
     </a>
     <span class="app-header-sep">›</span>
     <h1>Tracker</h1>
-    <span class="header-badge" id="projekt-badge">Kein Projekt</span>
+    <span class="header-badge" id="projekt-badge-btn" onclick="toggleProjectDropdown(event)" style="cursor:pointer;user-select:none;" id="projekt-badge">Kein Projekt</span>
+    <div id="project-dropdown" style="display:none;position:absolute;top:52px;right:24px;background:white;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-md);min-width:220px;z-index:300;overflow:hidden;"></div>
   </div>
 </div>
 
@@ -258,7 +273,9 @@ table.overview-table { width:100%; border-collapse:collapse; font-size:12px; }
     <!-- Projektname -->
     <div class="card tab-header-card">
       <label class="form-label" style="margin:0;white-space:nowrap;font-weight:600">Projektname</label>
-      <input type="text" class="form-input" id="projekt-name" placeholder="z.B. Brücken bauen Klasse 3b" oninput="saveMeta()" style="flex:1;min-width:200px">
+      <input type="text" class="form-input" id="projekt-name" placeholder="z.B. Brücken bauen" oninput="saveMeta()" style="flex:1;min-width:160px">
+      <label class="form-label" style="margin:0;white-space:nowrap;font-weight:600">Klasse</label>
+      <input type="text" class="form-input" id="klasse-input" placeholder="z.B. 3d" oninput="saveMeta()" style="max-width:90px">
     </div>
     <div class="setup-grid">
       <div class="card">
@@ -287,7 +304,10 @@ table.overview-table { width:100%; border-collapse:collapse; font-size:12px; }
       </div>
       <div class="card">
         <div class="card-header">
-          <div class="card-title">3. Lektionen</div>
+          <div class="card-title lbl-edit-wrap">
+            <span id="lektionen-card-prefix">3. </span><input class="lbl-edit-input" id="lektionen-card-title" value="Lektion" oninput="onLblInput()" title="Bezeichnung anpassen">
+            <span class="lbl-edit-icon" onclick="document.getElementById('lektionen-card-title').focus()" title="Umbenennen">✏️</span>
+          </div>
         </div>
         <div class="card-body">
           <div id="lektionen-list"></div>
@@ -301,7 +321,7 @@ table.overview-table { width:100%; border-collapse:collapse; font-size:12px; }
     <div id="erfassung-noop" class="setup-required" style="display:none">
       <div class="icon">📋</div>
       <h2>Setup noch nicht abgeschlossen</h2>
-      <p>Lade zuerst einen Generator-Link, importiere Schüler:innen und erstelle mindestens eine Lektion.</p>
+      <p>Lade zuerst einen Generator-Link, importiere Schüler:innen und erstelle mindestens eine ${lbl()}.</p>
       <button class="btn btn-primary" onclick="showTab('setup')">Zum Setup</button>
     </div>
     <div id="erfassung-content">
@@ -309,7 +329,7 @@ table.overview-table { width:100%; border-collapse:collapse; font-size:12px; }
       <div style="margin-bottom:16px">
         <div class="card tab-header-card" style="flex-direction:column;height:auto;padding-top:10px;padding-bottom:10px">
           <div style="display:flex;align-items:center;width:100%;gap:12px;flex-wrap:wrap">
-            <span style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap">Lektion wählen:</span>
+            <span id="lektion-waehlen-label" style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap">Lektion wählen:</span>
             <div style="margin-left:auto;display:flex;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;flex-shrink:0">
               <button id="mode-btn-schueler" onclick="setErfassungMode('schueler')" style="padding:4px 10px;font-size:11px;font-weight:600;border:none;cursor:pointer;font-family:var(--font);background:#2D2D2D;color:white;">👤 Schüler:in</button>
               <button id="mode-btn-indikator" onclick="setErfassungMode('indikator')" style="padding:4px 10px;font-size:11px;font-weight:600;border:none;cursor:pointer;font-family:var(--font);background:none;color:var(--muted);">📋 Indikator</button>
@@ -399,7 +419,7 @@ table.overview-table { width:100%; border-collapse:collapse; font-size:12px; }
       </div>
       <!-- Beurteilungen alle Lektionen -->
       <div class="card">
-        <div class="card-header"><div class="card-title">Beurteilungen alle Lektionen</div></div>
+        <div class="card-header"><div class="card-title" id="lektionen-all-title">Beurteilungen alle Lektionen</div></div>
         <div class="card-body" style="padding:0;overflow-x:auto">
           <div id="overview-table"></div>
         </div>
@@ -520,14 +540,134 @@ const MDATA = {
 };
 
 // ─── STATE ───────────────────────────────────────────
-let S = { projektName:'', indikatoren:[], schueler:[], lektionen:[], bewertungen:{} };
+let S = { projektName:'', klasse:'', lektionLabel:'', indikatoren:[], schueler:[], lektionen:[], bewertungen:{} };
 let curLek = null, curSIdx = 0, curIndIdx = 0, erfassungMode = 'schueler';
+let _activeProjectId = null;
 
 let _dirty = false;
 function markDirty(){ _dirty=true; }
-function save(){ try{ localStorage.setItem('mke-tracker', JSON.stringify(S)); _dirty=false; }catch(e){} }
+
+// ─── MULTI-PROJECT STORAGE ───────────────────────────
+function getProjectIndex(){ try{ return JSON.parse(localStorage.getItem('mke-projects')||'[]'); }catch(e){ return []; } }
+function saveProjectIndex(idx){ try{ localStorage.setItem('mke-projects', JSON.stringify(idx)); }catch(e){} }
+
+function save(){
+  if(!_activeProjectId) _activeProjectId='proj_'+Date.now();
+  try{
+    localStorage.setItem('mke-project-'+_activeProjectId, JSON.stringify(S));
+    let idx=getProjectIndex();
+    const existing=idx.findIndex(p=>p.id===_activeProjectId);
+    const entry={ id:_activeProjectId, name:S.projektName||'Unbenanntes Projekt', klasse:S.klasse||'' };
+    if(existing>=0) idx[existing]=entry; else idx.push(entry);
+    saveProjectIndex(idx);
+    _dirty=false;
+  }catch(e){}
+}
+
+function load(id){
+  try{
+    const idx=getProjectIndex();
+    // Migration: legacy mke-tracker
+    if(!id && idx.length===0){
+      const legacy=localStorage.getItem('mke-tracker');
+      if(legacy){ S=JSON.parse(legacy); S.schueler.sort((a,b)=>a.vorname.localeCompare(b.vorname)||a.nachname.localeCompare(b.nachname)); _activeProjectId='proj_'+Date.now(); save(); localStorage.removeItem('mke-tracker'); return; }
+    }
+    const targetId=id||(idx.length>0?idx[0].id:null);
+    if(targetId){
+      const d=localStorage.getItem('mke-project-'+targetId);
+      if(d){ S=JSON.parse(d); S.schueler.sort((a,b)=>a.vorname.localeCompare(b.vorname)||a.nachname.localeCompare(b.nachname)); _activeProjectId=targetId; }
+    }
+    if(!_activeProjectId){ _activeProjectId='proj_'+Date.now(); save(); }
+  }catch(e){}
+}
+
+function switchProject(id){
+  if(id===_activeProjectId){ closeProjectDropdown(); return; }
+  if(_dirty){ showConfirm('Ungespeicherte Änderungen','Möchtest du vor dem Wechsel speichern?','Speichern & wechseln',()=>{ save(); doSwitchProject(id); }); }
+  else doSwitchProject(id);
+}
+
+function doSwitchProject(id){
+  S={ projektName:'', klasse:'', lektionLabel:'', indikatoren:[], schueler:[], lektionen:[], bewertungen:{} };
+  curLek=null; curSIdx=0; curIndIdx=0; load(id); refreshUI(); closeProjectDropdown();
+  showToast('Projekt gewechselt','success');
+}
+
+function newProject(){
+  if(_dirty) save();
+  S={ projektName:'', klasse:'', lektionLabel:'', indikatoren:[], schueler:[], lektionen:[], bewertungen:{} };
+  _activeProjectId='proj_'+Date.now(); curLek=null; curSIdx=0; curIndIdx=0;
+  save(); refreshUI(); closeProjectDropdown(); showTab('setup');
+  showToast('Neues Projekt erstellt','success');
+  setTimeout(()=>document.getElementById('projekt-name').focus(),100);
+}
+
+function deleteProject(id, name){
+  closeProjectDropdown();
+  showConfirm('Projekt löschen', `«${name}» wirklich löschen? Alle Daten dieses Projekts gehen verloren.`, 'Löschen', ()=>{
+    localStorage.removeItem('mke-project-'+id);
+    let idx=getProjectIndex().filter(p=>p.id!==id);
+    saveProjectIndex(idx);
+    if(_activeProjectId===id){
+      S={ projektName:'', klasse:'', lektionLabel:'', indikatoren:[], schueler:[], lektionen:[], bewertungen:{} };
+      _activeProjectId=null; curLek=null; curSIdx=0; curIndIdx=0;
+      if(idx.length>0) load(idx[0].id);
+      else { _activeProjectId='proj_'+Date.now(); save(); }
+      refreshUI(); showTab('setup');
+    }
+    showToast('Projekt gelöscht','success');
+  });
+}
+
+function refreshUI(){
+  document.getElementById('projekt-name').value=S.projektName||'';
+  document.getElementById('klasse-input').value=S.klasse||'';
+  updateLektionLabels();
+  updateProjektBadge();
+  document.getElementById('generator-url').value='';
+  document.getElementById('url-status').textContent='Füge den Link aus dem MakerEdu-Generator ein.';
+  if(S.indikatoren.length) document.getElementById('url-status').innerHTML=`<span class="status-chip status-ok">✓ ${S.indikatoren.length} Indikatoren geladen</span>`;
+  renderSchuelerList(); renderLektionenList(); renderIndPreview();
+  updateSetupCols(); renderSetupProgress(); renderDatenInfo(); updateTabLabels();
+}
+
+// ─── PROJECT DROPDOWN ────────────────────────────────
+function toggleProjectDropdown(e){
+  e.stopPropagation();
+  const dd=document.getElementById('project-dropdown');
+  if(dd.style.display==='none'||!dd.style.display){ renderProjectDropdown(); dd.style.display='block'; }
+  else closeProjectDropdown();
+}
+function closeProjectDropdown(){ const dd=document.getElementById('project-dropdown'); if(dd) dd.style.display='none'; }
+document.addEventListener('click', e=>{
+  const dd=document.getElementById('project-dropdown');
+  if(!dd || dd.style.display==='none') return;
+  if(dd.contains(e.target) || e.target.closest('#projekt-badge-btn')) return;
+  closeProjectDropdown();
+});
+
+function renderProjectDropdown(){
+  const idx=getProjectIndex();
+  const dd=document.getElementById('project-dropdown');
+  dd.innerHTML=idx.map(p=>{
+    const label=[p.name||'Unbenanntes Projekt', p.klasse].filter(Boolean).join(' · ');
+    return `<div class="proj-item-wrap" style="display:flex;align-items:center;border-bottom:1px solid var(--border-lt)">
+      <div class="proj-item${p.id===_activeProjectId?' active':''}" style="flex:1;border-bottom:none" data-switch="${p.id}">${label}</div>
+      <button class="proj-delete" data-delete="${p.id}" data-name="${(p.name||'Unbenanntes Projekt').replace(/"/g,'&quot;')}" title="Löschen">✕</button>
+    </div>`;}).join('')+
+  `<div class="proj-new" data-new="1">+ Neues Projekt</div>`;
+  // Single event listener on dropdown
+  dd.onclick=e=>{
+    const sw=e.target.closest('[data-switch]');
+    const del=e.target.closest('[data-delete]');
+    const nw=e.target.closest('[data-new]');
+    if(del){ deleteProject(del.dataset.delete, del.dataset.name); return; }
+    if(sw){ switchProject(sw.dataset.switch); return; }
+    if(nw){ newProject(); return; }
+  };
+}
+
 window.addEventListener('beforeunload', e=>{ if(_dirty){ e.preventDefault(); e.returnValue=''; } });
-function load(){ try{ const d=localStorage.getItem('mke-tracker'); if(d){ S=JSON.parse(d); S.schueler.sort((a,b)=>a.vorname.localeCompare(b.vorname)||a.nachname.localeCompare(b.nachname)); } }catch(e){} }
 
 // ─── TABS ─────────────────────────────────────────────
 function renderSetupProgress(){
@@ -547,7 +687,7 @@ function renderSetupProgress(){
   const missing=steps.filter(s=>!s.done).map(s=>s.label).join(', ');
   const greenBanner=`<div style="background:#EDFCF2;border:0.5px solid #0F9D58;border-radius:var(--radius-sm);padding:10px 14px;display:flex;align-items:center;gap:10px;min-height:44px;margin-top:12px">
     <div style="width:7px;height:7px;border-radius:50%;background:#0F9D58;flex-shrink:0"></div>
-    <span style="font-size:13px;color:#0a5c38;flex:1">Alles bereit — wechsle zur Erfassung und starte mit Lektion 1.</span>
+    <span style="font-size:13px;color:#0a5c38;flex:1">Alles bereit — wechsle zur Erfassung und starte mit ${lbl()} 1.</span>
     <button class="btn btn-secondary btn-sm" onclick="showTab('erfassung')">Zur Erfassung →</button>
   </div>`;
   const yellowBanner=`<div style="background:#FFF8E1;border:0.5px solid #FFC000;border-radius:var(--radius-sm);padding:10px 14px;display:flex;align-items:center;gap:10px;min-height:44px;margin-top:12px">
@@ -580,7 +720,7 @@ function updateSetupCols(){
 function updateTabLabels(){
   const tabs=document.querySelectorAll('.tab-btn');
   const lekNum=S.lektionen.findIndex(l=>l.id===curLek);
-  const lekLabel=lekNum>=0 ? ` · L${lekNum+1}` : '';
+  const lekLabel=lekNum>=0 ? ` · ${lbl().charAt(0).toUpperCase()}${lekNum+1}` : '';
   if(tabs[1]) tabs[1].textContent='📝 Erfassung'+lekLabel;
 }
 function showTab(name){
@@ -747,36 +887,47 @@ function renderSchuelerList(){
 // ─── LEKTIONEN ────────────────────────────────────────
 function addLektion(){
   const num=S.lektionen.length+1;
-  const l={id:'lek_'+Date.now(),name:'Lektion '+num,datum:new Date().toLocaleDateString('de-CH')};
+  const l={id:'lek_'+Date.now(),name:lbl()+' '+num,datum:new Date().toLocaleDateString('de-CH')};
   S.lektionen.push(l); S.bewertungen[l.id]={}; markDirty(); save(); renderLektionenList(); renderSetupProgress();
-  showToast('Lektion '+num+' erstellt','success');
+  showToast(lbl()+' '+num+' erstellt','success');
 }
 function removeLektion(id){
   const l=S.lektionen.find(l=>l.id===id);
-  showConfirm('Lektion löschen', `«${l?.name}» wirklich löschen? Alle Beurteilungen dieser Lektion gehen verloren.`, 'Löschen', ()=>{
+  showConfirm(lbl()+' löschen', `«${l?.name}» wirklich löschen? Alle Beurteilungen dieser ${lbl()} gehen verloren.`, 'Löschen', ()=>{
     S.lektionen=S.lektionen.filter(l=>l.id!==id); delete S.bewertungen[id]; markDirty(); save(); renderLektionenList(); renderSetupProgress();
   });
 }
 function updLekName(id,v){ const l=S.lektionen.find(l=>l.id===id); if(l){l.name=v;save();} }
 function renderLektionenList(){
   const c=document.getElementById('lektionen-list');
-  if(!S.lektionen.length){ c.innerHTML=`<div style="text-align:center;padding:16px 0"><button class="btn btn-primary" onclick="addLektion()">+ Neue Lektion</button></div>`; return; }
+  if(!S.lektionen.length){ c.innerHTML=`<div style="text-align:center;padding:16px 0"><button class="btn btn-primary" onclick="addLektion()">+ Neue ${lbl()}</button></div>`; return; }
   c.innerHTML=S.lektionen.map((l,i)=>{
     const lb=S.bewertungen[l.id]||{};
     const total=S.schueler.length*S.indikatoren.length;
     const done=Object.values(lb).reduce((s,sr)=>s+Object.keys(sr).length,0);
     const pct=total>0?Math.round(done/total*100):0;
     return `<div class="lektion-item"><div class="lektion-num">${i+1}</div><div style="flex:1"><input type="text" value="${l.name}" class="form-input" style="max-width:200px;padding:5px 9px;font-size:13px" onchange="updLekName('${l.id}',this.value)"><div style="font-size:11px;color:var(--dim);margin-top:4px">${l.datum} · ${pct}% erfasst</div></div><div style="display:flex;gap:6px;align-items:center"><button class="btn btn-primary btn-sm" onclick="goErfassung('${l.id}')">Beurteilen</button><button class="remove-btn" onclick="removeLektion('${l.id}')">✕</button></div></div>`;
-  }).join('') + `<div style="margin-top:16px;text-align:center"><button class="btn btn-primary" onclick="addLektion()">+ Neue Lektion</button></div>`;
+  }).join('') + `<div style="margin-top:16px;text-align:center"><button class="btn btn-primary" onclick="addLektion()">+ Neue ${lbl()}</button></div>`;
 }
 function goErfassung(id){ curLek=id; showTab('erfassung'); onLektionChange(id); }
-function saveMeta(){ S.projektName=document.getElementById('projekt-name').value; markDirty(); save(); updateProjektBadge(); renderSetupProgress(); }
+function lbl(){ return S.lektionLabel||'Lektion'; }
+function onLblInput(){ S.lektionLabel=document.getElementById('lektionen-card-title').value; markDirty(); save(); updateLektionLabels(); }
+function saveMeta(){ S.projektName=document.getElementById('projekt-name').value; S.klasse=document.getElementById('klasse-input').value; markDirty(); save(); updateProjektBadge(); renderSetupProgress(); }
+function updateLektionLabels(){
+  const l=lbl();
+  const h=document.getElementById('lektionen-card-title'); if(h) h.value=l;
+  const b=document.getElementById('lektionen-all-title'); if(b) b.textContent='Beurteilungen alle '+l;
+  const w=document.getElementById('lektion-waehlen-label'); if(w) w.textContent=l+' wählen:';
+  renderLektionenList();
+}
 function updateProjektBadge(){
-  const b=document.getElementById('projekt-badge');
+  const b=document.getElementById('projekt-badge-btn');
   if(!b) return;
   const name=S.projektName||'';
-  if(name){
-    b.textContent=name;
+  const klasse=S.klasse||'';
+  const parts=[name,klasse].filter(Boolean);
+  if(parts.length){
+    b.textContent=parts.join(' · ');
     b.style.background='rgba(255,255,255,0.15)';
     b.style.color='white';
     b.style.border='none';
@@ -945,13 +1096,13 @@ function updProgress(){
   if(pct===100){
     banner.innerHTML=`<div style="background:#EDFCF2;border:0.5px solid #0F9D58;border-radius:var(--radius-sm);padding:10px 14px;display:flex;align-items:center;gap:10px;min-height:44px;margin-top:12px">
       <div style="width:7px;height:7px;border-radius:50%;background:#0F9D58;flex-shrink:0"></div>
-      <span style="font-size:13px;color:#0a5c38;flex:1">Lektion vollständig beurteilt — alle ${total} Schüler:innen erfasst.</span>
+      <span style="font-size:13px;color:#0a5c38;flex:1">${lbl()} vollständig beurteilt — alle ${total} Schüler:innen erfasst.</span>
       <button class="btn btn-secondary btn-sm" onclick="showTab('dashboard')">Zur Auswertung →</button>
     </div>`;
   } else if(pct===0){
     banner.innerHTML=`<div style="background:#F5F5F3;border:0.5px solid #CCC;border-radius:var(--radius-sm);padding:10px 14px;display:flex;align-items:center;gap:10px;min-height:44px;margin-top:12px">
       <div style="width:7px;height:7px;border-radius:50%;background:#999;flex-shrink:0"></div>
-      <span style="font-size:13px;color:#666;flex:1">Diese Lektion wurde noch nicht gestartet — klicke auf einen Schüler / eine Schülerin um zu beginnen.</span>
+      <span style="font-size:13px;color:#666;flex:1">Diese ${lbl()} wurde noch nicht gestartet — klicke auf einen Schüler / eine Schülerin um zu beginnen.</span>
       <button class="btn btn-secondary btn-sm" style="visibility:hidden">Platzhalter</button>
     </div>`;
   } else {
@@ -1167,17 +1318,12 @@ function importJSON(event){
     try{
       const data=JSON.parse(e.target.result);
       if(!data.state) throw new Error('Ungültiges Format');
-      if(!confirm('Achtung: alle bestehenden Daten werden überschrieben. Fortfahren?')){
-        event.target.value=''; return;
-      }
-      S=data.state;
-      S.schueler.sort((a,b)=>a.vorname.localeCompare(b.vorname)||a.nachname.localeCompare(b.nachname));
-      save();
-      document.getElementById('projekt-name').value=S.projektName||'';
-      updateProjektBadge();
-      renderSchuelerList(); renderLektionenList(); renderIndPreview();
-      renderSetupProgress(); renderDatenInfo();
-      showToast('Importiert — '+S.schueler.length+' Schüler:innen, '+S.lektionen.length+' Lektionen','success');
+      showConfirm('Import','Achtung: alle bestehenden Daten dieses Projekts werden überschrieben. Fortfahren?','Importieren',()=>{
+        S=data.state;
+        S.schueler.sort((a,b)=>a.vorname.localeCompare(b.vorname)||a.nachname.localeCompare(b.nachname));
+        save(); refreshUI();
+        showToast('Importiert — '+S.schueler.length+' Schüler:innen, '+S.lektionen.length+' Lektionen','success');
+      });
     }catch(err){
       showToast('Fehler: '+err.message,'error');
     }
@@ -1187,15 +1333,10 @@ function importJSON(event){
 }
 
 function resetAll(){
-  showConfirm('Alle Daten löschen', 'Wirklich alle Daten löschen? Diese Aktion kann nicht rückgängig gemacht werden. Vorher exportieren empfohlen.', 'Alles löschen', ()=>{
-    S={projektName:'',indikatoren:[],schueler:[],lektionen:[],bewertungen:{}};
+  showConfirm('Alle Daten löschen', 'Wirklich alle Daten dieses Projekts löschen? Diese Aktion kann nicht rückgängig gemacht werden. Vorher exportieren empfohlen.', 'Alles löschen', ()=>{
+    S={projektName:'',klasse:'',lektionLabel:'',indikatoren:[],schueler:[],lektionen:[],bewertungen:{}};
     save();
-    document.getElementById('projekt-name').value='';
-    document.getElementById('generator-url').value='';
-    updateProjektBadge();
-    document.getElementById('url-status').textContent='Füge den Link aus dem MakerEdu-Generator ein.';
-    renderSchuelerList(); renderLektionenList(); renderIndPreview();
-    renderSetupProgress(); renderDatenInfo();
+    refreshUI();
     showToast('Alle Daten gelöscht','success');
     showTab('setup');
   });
@@ -1211,11 +1352,8 @@ function showToast(msg,type=''){
 
 // ─── INIT ────────────────────────────────────────────
 load();
-document.getElementById('projekt-name').value=S.projektName||'';
-updateProjektBadge();
-renderSchuelerList(); renderLektionenList(); renderIndPreview();
-updateSetupCols(); renderSetupProgress();
-if(S.indikatoren.length) document.getElementById('url-status').innerHTML=`<span class="status-chip status-ok">✓ ${S.indikatoren.length} Indikatoren geladen</span>`;
+refreshUI();
+updateSetupCols();
 const _savedTab=sessionStorage.getItem('mke-tab');
 showTab(['setup','erfassung','dashboard','daten'].includes(_savedTab)?_savedTab:'setup');
 window.addEventListener('resize',()=>{
