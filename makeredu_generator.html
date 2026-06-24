@@ -106,7 +106,7 @@
 </div>
 <div class="topbar">
   <div class="topbar-inner">
-    <a href="https://raphaelfisch.github.io/makeredu" class="topbar-link">
+    <a href="https://raphaelfisch.github.io/tools/makeredu.html" class="topbar-link">
       <div class="topbar-mark">M</div>
       <span class="topbar-brand">MakerEdu</span>
     </a>
@@ -472,7 +472,7 @@ function renderPreview(){
   // ── Shared constants mirroring PDF values exactly ──
   const COL='52% 12% 12% 12% 12%';
   const CB='&#9744;'; // checkbox
-  const GRADES=['--','-','+','++'];
+  const GRADES=['-','=','+','++'];
 
   const blocks=[];
 
@@ -569,7 +569,7 @@ function renderPreview(){
     });
 
     // Legend
-    blocks.push({html:'<div style="font-size:1.94mm;color:#AAA;font-style:italic;margin:1mm 0 2.5mm 0">-- nicht genügend · - genügend · + gut · ++ sehr gut</div>'});
+    blocks.push({html:'<div style="font-size:1.94mm;color:#AAA;font-style:italic;margin:1mm 0 2.5mm 0">- nicht genügend · = genügend · + gut · ++ sehr gut</div>'});
 
     // ── Gesamtbeurteilung ──
     let gH='<div style="border:0.4mm solid #222;border-radius:0.5mm;overflow:hidden;margin-top:7mm">';
@@ -948,7 +948,7 @@ async function generatePDF(){
     function drawSubTable(comp,sub){
       const si=selections[sub.id]||[];if(!si.length)return;
       const colW=[CW*0.52,CW*0.12,CW*0.12,CW*0.12,CW*0.12];
-      const grades=['--','-','+','++'];
+      const grades=['-','=','+','++'];
       const FS_IND=5.5, LINE_H=3.2, PAD_V=2;
       const HDR=HDR_H,COLOR=dc(comp.color),CL=dcLight(comp.colorLight);
       const pageBottom=MT+usableH;
@@ -1018,11 +1018,11 @@ async function generatePDF(){
     }
     function drawLegend(){
       checkSpace(6);doc.setFont('helvetica','italic');doc.setFontSize(5.5);stc('#AAAAAA');
-      doc.text('-- nicht gen\u00fcgend  \u00b7  - gen\u00fcgend  \u00b7  + gut  \u00b7  ++ sehr gut',ML,pageY+3.5);pageY+=7;
+      doc.text('- nicht gen\u00fcgend  \u00b7  = gen\u00fcgend  \u00b7  + gut  \u00b7  ++ sehr gut',ML,pageY+3.5);pageY+=7;
     }
     function drawSummaryBlock(){
       const colW=[CW*0.52,CW*0.12,CW*0.12,CW*0.12,CW*0.12];
-      const grades=['--','-','+','++'];
+      const grades=['-','=','+','++'];
       const TH=8,HH=6,RH=7.5,TOTH=7;
       const tH=HH+active.length*RH+(showGesamt?TOTH:0);
       const boxH=TH+tH;
