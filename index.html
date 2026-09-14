@@ -18,6 +18,7 @@
   --c-green:#70AD47;
   --c-yellow:#FFC000;
   --c-blue:#5B9BD5;
+  --c-teal:#2E6E6B;
 }
 html,body{min-height:100vh;min-height:100dvh;}
 body{
@@ -27,117 +28,70 @@ body{
   display:flex;
   flex-direction:column;
   align-items:center;
-  justify-content:center;
-  padding:32px 20px;
+  padding:48px 20px;
 }
 
 /* Header */
 .header{text-align:center;margin-bottom:48px;}
-.logo{
-  display:inline-flex;
-  align-items:center;
-  gap:12px;
-  margin-bottom:16px;
-}
-.logo-mark{
-  width:40px;height:40px;
-  border-radius:10px;
-  background:#2D2D2D;
-  display:grid;place-items:center;
-  color:white;font-size:18px;font-weight:800;
-}
+.logo{display:inline-flex;align-items:center;gap:12px;margin-bottom:16px;}
+.logo-mark{width:40px;height:40px;border-radius:10px;background:#2D2D2D;display:grid;place-items:center;color:white;font-size:18px;font-weight:800;}
 .logo-text{font-size:22px;font-weight:800;letter-spacing:-0.5px;}
-.header p{font-size:15px;color:var(--muted);max-width:400px;line-height:1.6;}
-
-/* Dot strip */
+.header p{font-size:15px;color:var(--muted);max-width:400px;line-height:1.6;margin:0 auto;}
 .dot-strip{display:flex;gap:6px;justify-content:center;margin-bottom:16px;}
 .dot{width:8px;height:8px;border-radius:50%;}
 
-/* Cards */
-.cards{
-  display:grid;
-  grid-template-columns:repeat(4, 1fr);
-  gap:20px;
-  max-width:1400px;
-  width:100%;
+/* Sections */
+.section{width:100%;max-width:860px;margin-bottom:40px;}
+.section-label{
+  font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.8px;color:var(--muted);
+  margin-bottom:14px;padding-bottom:10px;
+  border-bottom:1px solid var(--border);
 }
-@media(max-width:1000px){.cards{grid-template-columns:1fr 1fr;}}
-@media(max-width:600px){.cards{grid-template-columns:1fr;}}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:580px){.cards{grid-template-columns:1fr;}}
 
+/* Card */
 .card{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:32px;
-  text-decoration:none;
-  color:var(--text);
-  display:flex;
-  flex-direction:column;
-  gap:16px;
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:28px;text-decoration:none;color:var(--text);
+  display:flex;flex-direction:column;gap:14px;
   transition:transform 0.15s, box-shadow 0.15s;
-  position:relative;
-  overflow:hidden;
+  position:relative;overflow:hidden;
 }
-.card::before{
-  content:'';
-  position:absolute;
-  top:0;left:0;right:0;
-  height:4px;
-}
-.card-generator::before{background:linear-gradient(90deg, var(--c-red), var(--c-yellow));}
-.card-tracker::before{background:linear-gradient(90deg, var(--c-green), var(--c-blue));}
-.card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,0.1);}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;}
+.card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,0.09);}
 
-.card-icon{
-  font-size:28px;
-  width:52px;height:52px;
-  border-radius:12px;
-  display:grid;place-items:center;
-  flex-shrink:0;
-}
+.card-generator::before{background:linear-gradient(90deg,var(--c-red),var(--c-yellow));}
+.card-tracker::before{background:linear-gradient(90deg,var(--c-green),var(--c-blue));}
+.card-stl::before{background:linear-gradient(90deg,var(--c-teal),var(--c-blue));}
+.card-scan::before{background:linear-gradient(90deg,#8A5A00,var(--c-red));}
+
+.card-icon{font-size:26px;width:48px;height:48px;border-radius:12px;display:grid;place-items:center;flex-shrink:0;}
 .card-generator .card-icon{background:#FDECEA;}
 .card-tracker .card-icon{background:#F0F7EA;}
+.card-stl .card-icon{background:#DCE8E6;}
+.card-scan .card-icon{background:#FBF2DE;}
 
-.card-title{font-size:18px;font-weight:700;letter-spacing:-0.3px;}
+.card-title{font-size:17px;font-weight:700;letter-spacing:-0.3px;}
 .card-desc{font-size:13px;color:var(--muted);line-height:1.65;flex:1;}
 
-.card-cta{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  font-size:13px;
-  font-weight:600;
-  padding:8px 0;
-  border:none;
-  background:none;
-  cursor:pointer;
-  font-family:var(--font);
-}
+.badges{display:flex;gap:5px;flex-wrap:wrap;}
+.badge{font-size:10px;font-weight:600;padding:3px 8px;border-radius:100px;letter-spacing:0.3px;}
+.card-generator .badge{background:#FDECEA;color:var(--c-red);}
+.card-tracker .badge{background:#F0F7EA;color:#3a7a1f;}
+.card-stl .badge{background:#DCE8E6;color:var(--c-teal);}
+.card-scan .badge{background:#FBF2DE;color:#8A5A00;}
+
+.card-cta{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:6px 0;border:none;background:none;cursor:pointer;font-family:var(--font);}
 .card-generator .card-cta{color:var(--c-red);}
 .card-tracker .card-cta{color:#3a7a1f;}
-
+.card-stl .card-cta{color:var(--c-teal);}
+.card-scan .card-cta{color:#8A5A00;}
 .card-cta svg{width:16px;height:16px;transition:transform 0.15s;}
 .card:hover .card-cta svg{transform:translateX(4px);}
 
-/* Badges */
-.badges{display:flex;gap:6px;flex-wrap:wrap;}
-.badge{
-  font-size:10px;font-weight:600;
-  padding:3px 8px;border-radius:100px;
-  letter-spacing:0.3px;
-}
-.card-generator .badge{background:#FDECEA;color:var(--c-red);}
-.card-tracker .badge{background:#F0F7EA;color:#3a7a1f;}
-
-.card-stl::before{background:linear-gradient(90deg, #2E6E6B, #5B9BD5);}
-.card-stl .card-icon{background:#DCE8E6;}
-.card-stl .badge{background:#DCE8E6;color:#2E6E6B;}
-.card-stl .card-cta{color:#2E6E6B;}
-.card-scan::before{background:linear-gradient(90deg, #8A5A00, #C00000);}
-.card-scan .card-icon{background:#FBF2DE;}
-.card-scan .badge{background:#FBF2DE;color:#8A5A00;}
-.card-scan .card-cta{color:#8A5A00;}
-.footer{margin-top:40px;font-size:11px;color:var(--muted);text-align:center;}
+.footer{margin-top:16px;font-size:11px;color:var(--muted);text-align:center;}
 </style>
 </head>
 <body>
@@ -156,85 +110,69 @@ body{
   <p>Tools für die Beurteilung im Making-Unterricht.</p>
 </div>
 
-<div class="cards">
+<!-- Beurteilung -->
+<div class="section">
+  <div class="section-label">Beurteilung</div>
+  <div class="cards">
 
-  <a href="https://raphaelfisch.github.io/makeredu/makeredu_generator.html" class="card card-generator">
-    <div class="card-icon">📄</div>
-    <div>
+    <a href="https://raphaelfisch.github.io/makeredu/makeredu_generator.html" class="card card-generator">
+      <div class="card-icon">📄</div>
       <div class="card-title">Beurteilungs-Generator</div>
-    </div>
-    <div class="card-desc">
-      Wähle Indikatoren aus vier Kompetenzbereichen und erstelle ein druckfertiges Beurteilungsblatt als PDF — für Selbst- und Fremdeinschätzung.
-    </div>
-    <div class="badges">
-      <span class="badge">Personale Kompetenzen</span>
-      <span class="badge">Methodenkompetenzen</span>
-      <span class="badge">Soziale Kompetenzen</span>
-      <span class="badge">Fachkompetenzen</span>
-    </div>
-    <div class="card-cta">
-      Generator öffnen
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-    </div>
-  </a>
+      <div class="card-desc">Wähle Indikatoren aus vier Kompetenzbereichen und erstelle ein druckfertiges Beurteilungsblatt — für Selbst- und Fremdeinschätzung.</div>
+      <div class="badges">
+        <span class="badge">Personale Kompetenzen</span>
+        <span class="badge">Methodenkompetenzen</span>
+        <span class="badge">Soziale Kompetenzen</span>
+        <span class="badge">Fachkompetenzen</span>
+      </div>
+      <div class="card-cta">Generator öffnen <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+    </a>
 
-  <a href="https://raphaelfisch.github.io/makeredu/makeredu_tracker.html" class="card card-tracker">
-    <div class="card-icon">📊</div>
-    <div>
+    <a href="https://raphaelfisch.github.io/makeredu/makeredu_tracker.html" class="card card-tracker">
+      <div class="card-icon">📊</div>
       <div class="card-title">Lektions-Tracker</div>
-    </div>
-    <div class="card-desc">
-      Beurteile Schüler:innen Lektion für Lektion. Verfolge den Verlauf über ein ganzes Projekt und werte aus mit Boxplots und Verlaufsgrafiken.
-    </div>
-    <div class="badges">
-      <span class="badge">Verlauf pro Indikator</span>
-      <span class="badge">Boxplot-Auswertung</span>
-      <span class="badge">Export / Import</span>
-    </div>
-    <div class="card-cta">
-      Tracker öffnen
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-    </div>
-  </a>
+      <div class="card-desc">Beurteile Schüler:innen Lektion für Lektion. Verfolge den Verlauf über ein ganzes Projekt und werte aus mit Boxplots und Verlaufsgrafiken.</div>
+      <div class="badges">
+        <span class="badge">Verlauf pro Indikator</span>
+        <span class="badge">Boxplot-Auswertung</span>
+        <span class="badge">Export / Import</span>
+      </div>
+      <div class="card-cta">Tracker öffnen <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+    </a>
 
-  <a href="https://raphaelfisch.github.io/makeredu/stl_zu_svg.html" class="card card-stl">
-    <div class="card-icon">🔷</div>
-    <div>
+  </div>
+</div>
+
+<!-- Digitale Werkzeuge -->
+<div class="section">
+  <div class="section-label">Digitale Werkzeuge</div>
+  <div class="cards">
+
+    <a href="https://raphaelfisch.github.io/makeredu/stl_zu_svg.html" class="card card-stl">
+      <div class="card-icon">🔷</div>
       <div class="card-title">STL zu SVG</div>
-    </div>
-    <div class="card-desc">
-      Konvertiere STL-Dateien vom 3D-Drucker in SVG-Aussenkonturen — für Laser Cutter, Plotter oder weitere Bearbeitung.
-    </div>
-    <div class="badges">
-      <span class="badge">3D-Druck</span>
-      <span class="badge">Laser Cutter</span>
-      <span class="badge">SVG Export</span>
-    </div>
-    <div class="card-cta">
-      Tool öffnen
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-    </div>
-  </a>
+      <div class="card-desc">Konvertiere STL-Dateien vom 3D-Drucker in SVG-Aussenkonturen — für Laser Cutter, Plotter oder weitere Bearbeitung.</div>
+      <div class="badges">
+        <span class="badge">3D-Druck</span>
+        <span class="badge">Laser Cutter</span>
+        <span class="badge">SVG Export</span>
+      </div>
+      <div class="card-cta">Tool öffnen <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+    </a>
 
-  <a href="https://raphaelfisch.github.io/makeredu/scan_digitizer.html" class="card card-scan">
-    <div class="card-icon">🔍</div>
-    <div>
+    <a href="https://raphaelfisch.github.io/makeredu/scan_digitizer.html" class="card card-scan">
+      <div class="card-icon">🔍</div>
       <div class="card-title">Scan-Digitizer</div>
-    </div>
-    <div class="card-desc">
-      Lade einen Flachbettscan einer Skizze, setze den Nullpunkt, kalibriere den Massstab und exportiere ein massstabgetreues PDF.
-    </div>
-    <div class="badges">
-      <span class="badge">Skizzen</span>
-      <span class="badge">Massstab</span>
-      <span class="badge">PDF Export</span>
-    </div>
-    <div class="card-cta">
-      Tool öffnen
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-    </div>
-  </a>
+      <div class="card-desc">Lade einen Flachbettscan einer Skizze, setze den Nullpunkt, kalibriere den Massstab und exportiere ein massstabgetreues PDF.</div>
+      <div class="badges">
+        <span class="badge">Skizzen</span>
+        <span class="badge">Massstab</span>
+        <span class="badge">PDF Export</span>
+      </div>
+      <div class="card-cta">Tool öffnen <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+    </a>
 
+  </div>
 </div>
 
 <div class="footer">MakerEdu · © Raphael Fisch</div>
