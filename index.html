@@ -56,12 +56,13 @@ body{
 /* Cards */
 .cards{
   display:grid;
-  grid-template-columns:repeat(3, 1fr);
+  grid-template-columns:repeat(4, 1fr);
   gap:20px;
-  max-width:1100px;
+  max-width:1400px;
   width:100%;
 }
-@media(max-width:800px){.cards{grid-template-columns:1fr;}}
+@media(max-width:1000px){.cards{grid-template-columns:1fr 1fr;}}
+@media(max-width:600px){.cards{grid-template-columns:1fr;}}
 
 .card{
   background:var(--surface);
@@ -132,6 +133,10 @@ body{
 .card-stl .card-icon{background:#DCE8E6;}
 .card-stl .badge{background:#DCE8E6;color:#2E6E6B;}
 .card-stl .card-cta{color:#2E6E6B;}
+.card-scan::before{background:linear-gradient(90deg, #8A5A00, #C00000);}
+.card-scan .card-icon{background:#FBF2DE;}
+.card-scan .badge{background:#FBF2DE;color:#8A5A00;}
+.card-scan .card-cta{color:#8A5A00;}
 .footer{margin-top:40px;font-size:11px;color:var(--muted);text-align:center;}
 </style>
 </head>
@@ -204,6 +209,25 @@ body{
       <span class="badge">3D-Druck</span>
       <span class="badge">Laser Cutter</span>
       <span class="badge">SVG Export</span>
+    </div>
+    <div class="card-cta">
+      Tool öffnen
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </div>
+  </a>
+
+  <a href="https://raphaelfisch.github.io/makeredu/scan_digitizer.html" class="card card-scan">
+    <div class="card-icon">🔍</div>
+    <div>
+      <div class="card-title">Scan-Digitizer</div>
+    </div>
+    <div class="card-desc">
+      Lade einen Flachbettscan einer Skizze, setze den Nullpunkt, kalibriere den Massstab und exportiere ein massstabgetreues PDF.
+    </div>
+    <div class="badges">
+      <span class="badge">Skizzen</span>
+      <span class="badge">Massstab</span>
+      <span class="badge">PDF Export</span>
     </div>
     <div class="card-cta">
       Tool öffnen
