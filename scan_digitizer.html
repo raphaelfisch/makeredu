@@ -267,7 +267,7 @@ td button:hover{color:var(--bad)}
       <p class="hint">Alle Koordinaten zählen ab hier.</p>
     </details>
 
-    <details class="sect" id="s5" open>
+    <details class="sect" id="s5">
       <summary><span class="step">5</span> Koordinaten ablesen</summary>
       <div class="modes">
         <button class="btn mode" id="m-punkt">Punkt x/y</button>
@@ -1261,7 +1261,10 @@ function markDone(n){
   if(doneSteps.has(n)) return;
   doneSteps.add(n);
   if(el) el.open = false;
-  for(let k=n+1; k<=5; k++){
+  /* Sobald der Massstab steht, ist Messen möglich – Schritt 5 aufklappen.
+     Ausrichten und Nullpunkt sind optionale Vorbereitung und blockieren nicht. */
+  if(n === 2){ const m = sect(5); if(m) m.open = true; }
+  for(let k=n+1; k<=4; k++){
     if(!doneSteps.has(k)){
       const nx = sect(k);
       if(nx) nx.open = true;
