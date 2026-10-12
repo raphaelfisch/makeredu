@@ -77,12 +77,31 @@ aside{
   overflow-y:auto;padding:16px 18px 40px;
 }
 aside section{margin-bottom:22px}
+.count{display:inline-block;margin-left:5px;padding:1px 6px;border-radius:9px;
+  background:var(--surface);color:var(--ink-soft);font-size:10px;letter-spacing:0}
 aside h2{margin:0 0 10px;font-size:11px;font-weight:600;color:var(--ink-soft);
   text-transform:uppercase;letter-spacing:.6px}
+details.sect{margin-bottom:14px;border-top:1px solid var(--line-lt);padding-top:12px}
+details.sect>summary{
+  list-style:none;cursor:pointer;display:flex;align-items:center;gap:7px;
+  font-size:11px;font-weight:600;color:var(--ink-soft);
+  text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;
+}
+details.sect>summary::-webkit-details-marker{display:none}
+details.sect>summary::before{
+  content:'';width:0;height:0;border-left:4px solid var(--ink-faint);
+  border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;
+  transition:transform .15s;
+}
+details.sect[open]>summary::before{transform:rotate(90deg)}
+details.sect>summary:hover{color:var(--ink)}
 
 .row{display:flex;align-items:center;gap:8px;margin-bottom:9px;position:relative}
 .row label{font-size:13px;color:var(--ink)}
 .row input,.row select{margin-left:auto}
+/* Gestapelte Zeile: Titel oben, breites Bedienelement darunter */
+.row.stack{flex-wrap:wrap}
+.row.stack select{flex:1 0 100%;margin-left:0;margin-top:6px;width:100%}
 .hint{font-size:11.5px;color:var(--ink-faint);margin:-2px 0 9px}
 
 input[type=number]{
@@ -130,13 +149,32 @@ select{padding:8px 11px;border:1px solid var(--line);border-radius:var(--radius-
 #parts{list-style:none;margin:0;padding:0}
 #parts li{
   border:1px solid var(--line);border-radius:var(--radius);
-  padding:12px 14px;margin-bottom:10px;background:var(--paper);
-  box-shadow:var(--shadow);
+  margin-bottom:6px;background:var(--paper);overflow:hidden;
 }
-#parts li.sel{border-color:var(--accent);background:var(--accent-soft)}
+#parts li.sel{border-color:var(--accent);box-shadow:var(--shadow)}
 #parts li.bad{border-color:var(--bad)}
 #parts li.near{border-color:var(--warn)}
-.pname{font-size:13px;font-weight:500;word-break:break-all;cursor:pointer;display:block;margin-bottom:3px}
+.part-head{
+  width:100%;display:flex;align-items:center;gap:9px;
+  padding:9px 11px;background:none;border:0;cursor:pointer;text-align:left;
+}
+.part-head:hover{background:var(--surface)}
+#parts li.sel .part-head{background:var(--accent-soft)}
+.part-num{
+  flex:0 0 auto;width:19px;height:19px;border-radius:4px;
+  background:var(--surface);color:var(--ink-soft);
+  font-size:10.5px;font-weight:600;display:grid;place-items:center;
+}
+#parts li.sel .part-num{background:var(--accent);color:#fff}
+.part-name{
+  flex:1;min-width:0;font-size:13px;font-weight:500;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.part-dim{flex:0 0 auto;font-size:11.5px;color:var(--ink-faint)}
+.part-dot{flex:0 0 auto;width:8px;height:8px;border-radius:50%}
+.part-dot.bad{background:var(--bad)}
+.part-dot.near{background:var(--warn)}
+.part-body{padding:2px 11px 12px}
 .pmeta{font-size:11.5px;color:var(--ink-soft);margin-bottom:8px}
 .pfields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px}
 .pfields label{display:block;font-size:10px;font-weight:600;color:var(--ink-soft);
@@ -162,12 +200,28 @@ select{padding:8px 11px;border:1px solid var(--line);border-radius:var(--radius-
   display:flex;align-items:center;justify-content:center;
   font-size:16px;color:var(--accent);background:rgba(245,244,241,.92);
 }
-#empty{
-  position:absolute;inset:0;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:6px;
-  color:var(--ink-soft);pointer-events:none;text-align:center;padding:20px;
+#guide{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:min(440px,calc(100% - 40px));z-index:40;
+  background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow-md);padding:20px 22px;
 }
-#empty strong{font-size:16px;font-weight:500;color:var(--ink)}
+#guide h2{
+  margin:0 0 12px;font-size:11px;font-weight:600;color:var(--ink-soft);
+  text-transform:uppercase;letter-spacing:.6px;
+}
+#guide ol{margin:0;padding-left:20px;font-size:13px;line-height:1.5}
+#guide ol li{margin-bottom:8px}
+#guide ol li::marker{color:var(--accent);font-weight:600}
+#guide b{font-weight:600}
+.guide-tips{
+  margin:14px 0 0;padding-top:12px;border-top:1px solid var(--line-lt);
+  font-size:11.5px;line-height:1.5;color:var(--ink-soft);
+}
+.g-bad{color:var(--bad)}
+.g-near{color:var(--warn)}
+#guide-close{position:absolute;top:12px;right:12px}
+#help{font-weight:600;width:30px;padding:6px 0}
 #readout{
   position:absolute;left:0;right:0;bottom:0;
   padding:7px 14px;background:var(--paper);border-top:1px solid var(--line);
@@ -205,62 +259,70 @@ select{padding:8px 11px;border:1px solid var(--line);border-radius:var(--radius-
   </section>
 
   <section id="listWrap" hidden>
-    <h2>Teile</h2>
-    <ul id="parts"></ul>
-    <div class="row" data-info="Kleinste Luft zwischen zwei Teilen, damit die Schnittfugen nicht ineinanderlaufen. Gilt beim automatischen Anordnen und als Rastabstand beim Ziehen. Beim ausgewählten Teil wird die Zone angezeigt; zu enge Teile werden gelb markiert.">
-      <label for="gap">Abstand (mm)</label>
-      <input type="number" id="gap" value="5" min="0" max="100" step="1">
-    </div>
-    <button class="btn wide" id="autoarr">Automatisch anordnen</button>
-    <p class="hint stale" id="arrhint" hidden></p>
+    <details class="sect" open>
+      <summary>Teile <span id="parts-count" class="count">0</span></summary>
+      <ul id="parts"></ul>
+      <div class="row" data-info="Kleinste Luft zwischen zwei Teilen, damit die Schnittfugen nicht ineinanderlaufen. Gilt beim automatischen Anordnen und als Rastabstand beim Ziehen. Beim ausgewählten Teil wird die Zone angezeigt; zu enge Teile werden gelb markiert.">
+        <label for="gap">Abstand (mm)</label>
+        <input type="number" id="gap" value="5" min="0" max="100" step="1">
+      </div>
+      <button class="btn wide" id="autoarr">Automatisch anordnen</button>
+      <p class="hint stale" id="arrhint" hidden></p>
+    </details>
   </section>
 
   <section id="opts" hidden>
-    <h2>Kontur</h2>
-    <div class="row" data-info="Maximale Abweichung der vereinfachten Kontur vom Original, in Millimetern. 0 behält jeden Punkt aus dem Netz. Grössere Werte glätten Rundungen und machen die Datei kleiner.">
-      <label for="tol">Vereinfachung (mm)</label>
-      <input type="number" id="tol" value="0.01" min="0" max="1" step="0.01">
-    </div>
-    <div class="row" data-info="100 % entspricht den Massen im STL. 200 % schneidet das Teil doppelt so gross.">
-      <label for="scale">Massstab (%)</label>
-      <input type="number" id="scale" value="100" min="1" max="1000" step="1">
-    </div>
+    <details class="sect" open>
+      <summary>Blatt</summary>
+      <div class="row" data-info="Breite des Materials, das du einlegst.">
+        <label for="sheetw">Breite (mm)</label>
+        <input type="number" id="sheetw" value="300" min="10" max="3000" step="1">
+      </div>
+      <div class="row" data-info="Höhe des Materials, das du einlegst.">
+        <label for="sheeth">Höhe (mm)</label>
+        <input type="number" id="sheeth" value="200" min="10" max="3000" step="1">
+      </div>
+      <div class="row" data-info="Sicherheitszone zur Materialkante. Hält die Teile von unsauberen Plattenkanten und von der Klemmleiste weg. Beim Ziehen rasten Teile an dieser Linie ein.">
+        <label for="margin">Rand (mm)</label>
+        <input type="number" id="margin" value="5" min="0" max="200" step="1">
+      </div>
+      <button class="btn wide" id="fitsheet">Blatt an Teile anpassen</button>
+      <div class="row stack" data-info="„Ganzes Blatt“ schreibt die Blattgrösse ins SVG, die Teile liegen an ihrer Position. „Eng um die Teile“ beschneidet knapp um die Konturen.">
+        <label for="outmode">Ausgabe</label>
+        <select id="outmode">
+          <option value="tight" id="opt-tight">Eng um die Teile</option>
+          <option value="full" id="opt-full">Ganzes Blatt</option>
+        </select>
+      </div>
+    </details>
 
-    <h2 style="margin-top:20px">Blatt</h2>
-    <div class="row" data-info="Breite des Materials, das du einlegst.">
-      <label for="sheetw">Breite (mm)</label>
-      <input type="number" id="sheetw" value="300" min="10" max="3000" step="1">
-    </div>
-    <div class="row" data-info="Höhe des Materials, das du einlegst.">
-      <label for="sheeth">Höhe (mm)</label>
-      <input type="number" id="sheeth" value="200" min="10" max="3000" step="1">
-    </div>
-    <div class="row" data-info="Sicherheitszone zur Materialkante. Hält die Teile von unsauberen Plattenkanten und von der Klemmleiste weg. Beim Ziehen rasten Teile an dieser Linie ein.">
-      <label for="margin">Rand (mm)</label>
-      <input type="number" id="margin" value="5" min="0" max="200" step="1">
-    </div>
-    <button class="btn wide" id="fitsheet">Blatt an Teile anpassen</button>
-    <div class="row" data-info="„Ganzes Blatt“ schreibt die Blattgrösse ins SVG, die Teile liegen an ihrer Position. „Eng um die Teile“ beschneidet knapp um die Konturen.">
-      <label for="outmode">Ausgabe</label>
-      <select id="outmode">
-        <option value="tight">Eng um die Teile</option>
-        <option value="full">Ganzes Blatt</option>
-      </select>
-    </div>
+    <details class="sect">
+      <summary>Kontur</summary>
+      <div class="row" data-info="Maximale Abweichung der vereinfachten Kontur vom Original, in Millimetern. 0 behält jeden Punkt aus dem Netz. Grössere Werte glätten Rundungen und machen die Datei kleiner.">
+        <label for="tol">Vereinfachung (mm)</label>
+        <input type="number" id="tol" value="0.01" min="0" max="1" step="0.01">
+      </div>
+      <div class="row" data-info="100 % entspricht den Massen im STL. 200 % schneidet das Teil doppelt so gross.">
+        <label for="scale">Massstab (%)</label>
+        <input type="number" id="scale" value="100" min="1" max="1000" step="1">
+      </div>
+    </details>
 
-    <h2 style="margin-top:20px">Linie</h2>
-    <div class="row" data-info="Nur die Darstellung der Schnittlinie. Manche Geräte erwarten reines Rot als Schneiden, andere eine dünne schwarze Haarlinie. Was deines braucht, steht in dessen Anleitung.">
-      <label for="col">Farbe</label>
-      <select id="col">
-        <option value="#000000">Schwarz</option>
-        <option value="#FF0000">Rot (255,0,0)</option>
-        <option value="#0000FF">Blau (0,0,255)</option>
-      </select>
-    </div>
-    <div class="row" data-info="Breite der gezeichneten Linie im SVG. Sie hat nichts mit der Schnittfugenbreite des Geräts zu tun.">
-      <label for="lw">Stärke (mm)</label>
-      <input type="number" id="lw" value="0.1" min="0.01" max="2" step="0.01">
-    </div>
+    <details class="sect">
+      <summary>Linie</summary>
+      <div class="row" data-info="Nur die Darstellung der Schnittlinie. Manche Geräte erwarten reines Rot als Schneiden, andere eine dünne schwarze Haarlinie. Was deines braucht, steht in dessen Anleitung.">
+        <label for="col">Farbe</label>
+        <select id="col">
+          <option value="#000000">Schwarz</option>
+          <option value="#FF0000">Rot (255,0,0)</option>
+          <option value="#0000FF">Blau (0,0,255)</option>
+        </select>
+      </div>
+      <div class="row" data-info="Breite der gezeichneten Linie im SVG. Sie hat nichts mit der Schnittfugenbreite des Geräts zu tun.">
+        <label for="lw">Stärke (mm)</label>
+        <input type="number" id="lw" value="0.1" min="0.01" max="2" step="0.01">
+      </div>
+    </details>
   </section>
 
   <section id="exp" hidden>
@@ -271,8 +333,24 @@ select{padding:8px 11px;border:1px solid var(--line);border-radius:var(--radius-
 
 <div id="stage">
   <canvas id="cv" tabindex="0"></canvas>
-  <div id="empty"><strong>Keine Datei geladen</strong><span>STL ablegen oder oben öffnen</span></div>
-  <div class="viewbtns"><button class="btn tiny" id="fit" hidden>Ansicht anpassen</button></div>
+  <div id="guide">
+    <button class="btn tiny" id="guide-close" hidden>Schliessen</button>
+    <h2>So geht's</h2>
+    <ol>
+      <li><b>STL öffnen</b> — hier ablegen oder links wählen. Jede Datei wird ein Teil, auch wenn sie aus mehreren Stücken besteht.</li>
+      <li><b>Blatt eintragen</b> — Breite und Höhe des Materials, das du einlegst.</li>
+      <li><b>Anordnen</b> — Teile ziehen, am Griff darüber drehen, oder „Automatisch anordnen".</li>
+      <li><b>SVG speichern</b> — 1:1 in Millimetern. Die Schnittfugenbreite stellst du am Gerät ein.</li>
+    </ol>
+    <p class="guide-tips">
+      Shift beim Ziehen hebt das Rasten auf · Pfeiltasten schieben um 1 mm, mit Shift um 10 mm ·
+      <b class="g-bad">Rot</b> heisst Überlappung, <b class="g-near">Gelb</b> zu wenig Abstand
+    </p>
+  </div>
+  <div class="viewbtns">
+    <button class="btn tiny" id="help" title="Kurzanleitung">?</button>
+    <button class="btn tiny" id="fit" hidden>Ansicht anpassen</button>
+  </div>
   <div id="readout" hidden></div>
 </div>
 </main>
@@ -468,6 +546,7 @@ function simplifyRing(r, tol){
 /* ===================== Zustand ===================== */
 const parts = [];
 let sel = -1;
+let guideOpen = false;   /* Anleitung von Hand eingeblendet? */
 const view = {x:0, y:0, s:1, init:false};
 
 const $ = id => document.getElementById(id);
@@ -871,41 +950,66 @@ function draw(){
 function renderList(){
   const ul = $('parts');
   ul.innerHTML = '';
-  const o = opt();
   const L = layout();
+  $('parts-count').textContent = parts.length;
   parts.forEach((p, i)=>{
     const it = L.items[i], s = it.s;
+    const open = i === sel;
     const li = document.createElement('li');
-    li.className = (i === sel ? 'sel ' : '') + (it.bad ? 'bad' : it.near ? 'near' : '');
+    li.className = (open ? 'sel ' : '') + (it.bad ? 'bad' : it.near ? 'near' : '');
 
+    /* Eingeklappte Kopfzeile: Nummer, Name, Masse, Warnpunkt */
+    const head = document.createElement('button');
+    head.type = 'button';
+    head.className = 'part-head';
+    head.setAttribute('aria-expanded', open ? 'true' : 'false');
+    head.onclick = ()=>{ sel = open ? -1 : i; renderList(); draw(); };
+
+    const num = document.createElement('span');
+    num.className = 'part-num'; num.textContent = i+1;
     const nm = document.createElement('span');
-    nm.className = 'pname';
-    nm.textContent = p.name;
-    nm.onclick = ()=>{ sel = sel === i ? -1 : i; renderList(); draw(); };
-    li.appendChild(nm);
+    nm.className = 'part-name'; nm.textContent = p.name;
+    const dim = document.createElement('span');
+    dim.className = 'part-dim';
+    dim.textContent = s.rings.length ? `${s.w.toFixed(0)} × ${s.h.toFixed(0)}` : '—';
+    head.appendChild(num); head.appendChild(nm); head.appendChild(dim);
+
+    if(it.bad || it.near || p.error){
+      const dot = document.createElement('span');
+      dot.className = 'part-dot ' + (it.bad || p.error ? 'bad' : 'near');
+      dot.title = it.bad ? 'Überlappt ein anderes Teil'
+                : p.error ? p.error : 'Liegt näher als der Abstand';
+      head.appendChild(dot);
+    }
+    li.appendChild(head);
+    if(!open){ ul.appendChild(li); return; }
+
+    /* Aufgeklappt: alles Weitere */
+    const body = document.createElement('div');
+    body.className = 'part-body';
 
     const meta = document.createElement('div');
     meta.className = 'pmeta';
     meta.textContent = s.rings.length
       ? `${s.w.toFixed(2)} × ${s.h.toFixed(2)} mm · ${s.rings.length} Kontur${s.rings.length>1?'en':''} · ${s.n} Punkte`
       : '—';
-    li.appendChild(meta);
+    body.appendChild(meta);
 
     const grid = document.createElement('div');
     grid.className = 'pfields';
-    const mk = (lbl, val, step, cb)=>{
+    const mk = (lbl, val, cb)=>{
       const wrap = document.createElement('div');
       const l = document.createElement('label'); l.textContent = lbl;
       const inp = document.createElement('input');
-      inp.type = 'number'; inp.step = step; inp.value = (+val.toFixed(2));
+      inp.type = 'number'; inp.step = 1; inp.value = (+val.toFixed(2));
       inp.onchange = ()=>{ cb(+inp.value); refresh(); };
       wrap.appendChild(l); wrap.appendChild(inp);
       return wrap;
     };
-    grid.appendChild(mk('X (mm)', p.x, 1, v=>{ p.x = v; }));
-    grid.appendChild(mk('Y (mm)', p.y, 1, v=>{ p.y = v; }));
-    grid.appendChild(mk('Winkel °', p.rot, 1, v=>{ setRot(p, v); }));
-    li.appendChild(grid);
+    grid.appendChild(mk('X (mm)', p.x, v=>{ p.x = v; }));
+    grid.appendChild(mk('Y (mm)', p.y, v=>{ p.y = v; }));
+    grid.appendChild(mk('Winkel °', p.rot, v=>{ setRot(p, v); }));
+    body.appendChild(grid);
 
     const ctl = document.createElement('div');
     ctl.className = 'pctl';
@@ -918,12 +1022,12 @@ function renderList(){
     del.style.marginLeft = 'auto';
     del.onclick = ()=>{ parts.splice(i,1); sel = -1; refresh(); };
     ctl.appendChild(del);
-    li.appendChild(ctl);
+    body.appendChild(ctl);
 
     if(p.zmin !== p.zmax){
       const zfmt = v => 'z = ' + (+v.toFixed(2)) + ' mm';
-      const head = document.createElement('div');
-      head.className = 'zhead';
+      const zh = document.createElement('div');
+      zh.className = 'zhead';
       const cur = document.createElement('span');
       cur.textContent = 'Ebene ' + zfmt(p.z) + (p.zauto ? ', automatisch' : ', von Hand');
       const tog = document.createElement('button');
@@ -931,8 +1035,8 @@ function renderList(){
       tog.textContent = p.zopen ? 'Fertig' : 'Ändern';
       tog.setAttribute('aria-expanded', p.zopen ? 'true' : 'false');
       tog.onclick = ()=>{ p.zopen = !p.zopen; renderList(); };
-      head.appendChild(cur); head.appendChild(tog);
-      li.appendChild(head);
+      zh.appendChild(cur); zh.appendChild(tog);
+      body.appendChild(zh);
 
       if(p.zopen){
         const zl = document.createElement('div');
@@ -946,29 +1050,30 @@ function renderList(){
         sl.setAttribute('aria-label', 'Schnittebene in Millimetern');
         sl.oninput = ()=>{ sliceManual(p, +sl.value); cur.textContent = 'Ebene ' + zfmt(p.z) + ', von Hand'; draw(); };
         sl.onchange = refresh;
-        zl.appendChild(sl); li.appendChild(zl);
+        zl.appendChild(sl); body.appendChild(zl);
         const auto = document.createElement('button');
         auto.className = 'btn tiny'; auto.textContent = 'Zurück zur Automatik';
         auto.onclick = ()=>{ recompute(p); refresh(); };
-        li.appendChild(auto);
+        body.appendChild(auto);
       }
     }
 
     if(p.error){
-      const w = document.createElement('div');
-      w.className = 'note'; w.textContent = p.error;
-      li.appendChild(w);
+      const wv = document.createElement('div');
+      wv.className = 'note'; wv.textContent = p.error;
+      body.appendChild(wv);
     }
     if(it.bad){
-      const w = document.createElement('div');
-      w.className = 'note err'; w.textContent = 'Überlappt ein anderes Teil.';
-      li.appendChild(w);
+      const wv = document.createElement('div');
+      wv.className = 'note err'; wv.textContent = 'Überlappt ein anderes Teil.';
+      body.appendChild(wv);
     }else if(it.near){
-      const w = document.createElement('div');
-      w.className = 'note';
-      w.textContent = `Nur ${it.clear.toFixed(2)} mm zum nächsten Teil, eingestellt sind ${opt().gap} mm.`;
-      li.appendChild(w);
+      const wv = document.createElement('div');
+      wv.className = 'note';
+      wv.textContent = `Nur ${it.clear.toFixed(2)} mm zum nächsten Teil, eingestellt sind ${L.o.gap} mm.`;
+      body.appendChild(wv);
     }
+    li.appendChild(body);
     ul.appendChild(li);
   });
 }
@@ -979,7 +1084,10 @@ function refresh(){
   $('listWrap').hidden = !has;
   $('opts').hidden = !has;
   $('exp').hidden = !has;
-  $('empty').hidden = has;
+  /* Ohne Teile ist die Anleitung der Startbildschirm; mit Teilen wird sie
+     nur auf Wunsch eingeblendet und bekommt dann einen Schliessen-Knopf. */
+  if(!has){ $('guide').hidden = false; $('guide-close').hidden = true; }
+  else if(!guideOpen) $('guide').hidden = true;
   $('readout').hidden = !has;
   $('fit').hidden = !has;
   /* Hinweis, wenn eine Einstellung seit dem letzten Anordnen geändert wurde */
@@ -999,6 +1107,11 @@ function refresh(){
   if(has){
     renderList();
     const L = layout();
+    /* Beide Ausgabemasse in die Auswahl schreiben — sonst sieht man den
+       Unterschied erst nach dem Umschalten. */
+    const tw = Math.max(0, L.x1 - L.x0), th = Math.max(0, L.y1 - L.y0);
+    $('opt-tight').textContent = `Eng um die Teile (${tw.toFixed(1)} × ${th.toFixed(1)} mm)`;
+    $('opt-full').textContent  = `Ganzes Blatt (${L.o.sheet} × ${L.o.sheetH} mm)`;
     $('readout').innerHTML =
       `<span>Ausgabe <b>${L.w.toFixed(2)} × ${L.h.toFixed(2)} mm</b></span>` +
       `<span>Teile <b>${parts.length}</b></span>` +
@@ -1217,7 +1330,7 @@ cv.addEventListener('wheel', e=>{
 
 /* ===================== Tastatur ===================== */
 window.addEventListener('keydown', e=>{
-  if(e.key === 'Escape'){ closeTips(); return; }
+  if(e.key === 'Escape'){ closeTips(); closeGuide(); return; }
   const t = e.target;
   if(t && (t.tagName === 'INPUT' || t.tagName === 'SELECT' || t.tagName === 'TEXTAREA')) return;
   if(sel < 0 || sel >= parts.length) return;
@@ -1237,6 +1350,27 @@ window.addEventListener('keydown', e=>{
 });
 
 /* ===================== Ereignisse ===================== */
+/* Schliessen gilt nur für die eingeblendete Anleitung. Ohne Teile ist sie
+   der Startbildschirm und bleibt stehen. */
+function closeGuide(){
+  if(!guideOpen) return;
+  guideOpen = false;
+  $('guide').hidden = true;
+}
+$('help').onclick = ()=>{
+  if(!parts.length) return;            /* ohne Teile steht sie ohnehin da */
+  guideOpen = !guideOpen;
+  $('guide').hidden = !guideOpen;
+  $('guide-close').hidden = false;
+};
+$('guide-close').onclick = closeGuide;
+/* Klick irgendwo daneben schliesst sie ebenfalls */
+document.addEventListener('pointerdown', e=>{
+  if(!guideOpen) return;
+  if($('guide').contains(e.target)) return;
+  if($('help').contains(e.target)) return;   /* sonst ginge sie sofort wieder zu */
+  closeGuide();
+}, true);
 $('pick').onclick = ()=>$('file').click();
 $('file').onchange = e=>{ addFiles(e.target.files); e.target.value = ''; };
 $('fit').onclick = ()=>{ view.init = false; fitView(); };
@@ -1253,6 +1387,8 @@ $('fitsheet').onclick = ()=>{
   $('sheeth').value = Math.max(10, Math.ceil(L2.y1 + m));
   /* Die Teile sitzen jetzt am Rand des neuen Blattes — kein Anordnen nötig */
   if(arranged){ arranged.margin = m; arranged.sheet = +$('sheetw').value; }
+  /* Das Blatt wurde gerade bewusst festgelegt, also soll es auch im SVG stehen */
+  $('outmode').value = 'full';
   view.init = false;
   refresh();
 };
