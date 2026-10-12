@@ -187,7 +187,32 @@ canvas#view{position:absolute;inset:0;width:100%;height:100%;display:block;curso
   position:absolute;inset:0;display:grid;place-items:center;text-align:center;
   color:var(--ink-faint);font-size:15px;padding:24px;
 }
+.dropzone{z-index:10}
 .dropzone.over{background:var(--accent-soft);color:var(--accent)}
+.dropzone.over::after{content:'Scan hier ablegen'}
+
+/* ===== Kurzanleitung — gleicher Baustein wie im Aussenkontur-Werkzeug ===== */
+#guide{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:min(440px,calc(100% - 40px));z-index:40;
+  background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow-md);padding:20px 22px;
+}
+#guide h2{
+  margin:0 0 12px;font-size:11px;font-weight:600;color:var(--ink-soft);
+  text-transform:uppercase;letter-spacing:.6px;
+}
+#guide ol{margin:0;padding-left:20px;font-size:13px;line-height:1.5}
+#guide ol li{margin-bottom:8px}
+#guide ol li::marker{color:var(--accent);font-weight:600}
+#guide b{font-weight:600}
+.guide-tips{
+  margin:14px 0 0;padding-top:12px;border-top:1px solid var(--line-lt);
+  font-size:11.5px;line-height:1.5;color:var(--ink-soft);
+}
+#guide-close{position:absolute;top:12px;right:12px}
+#help{font-weight:600;width:30px;padding:6px 0}
+.viewbtns{position:absolute;top:12px;right:12px;display:flex;gap:6px;z-index:20}
 
 /* ===== Statuszeilen und Listen ===== */
 .status{font-size:11.5px;line-height:1.45;margin-top:9px;color:var(--ink-faint)}
@@ -353,7 +378,23 @@ td button:hover{color:var(--bad)}
   <div id="stage">
     <div class="canvas-wrap" id="wrap">
       <canvas id="view" tabindex="0"></canvas>
-      <div class="dropzone" id="drop">Scan hierher ziehen oder links auswählen</div>
+      <div class="dropzone" id="drop"></div>
+      <div id="guide">
+        <button class="btn tiny" id="guide-close" hidden>Schliessen</button>
+        <h2>So geht's</h2>
+        <ol>
+          <li><b>Scan laden</b> — hier ablegen oder links öffnen. Flachbettscan mit 300 oder 600 dpi.</li>
+          <li><b>Massstab setzen</b> — dpi eintragen oder zwei Punkte mit bekanntem Abstand messen. Ohne Massstab bleibt das Messen gesperrt.</li>
+          <li><b>Nullpunkt setzen</b> — ab dieser Stelle zählen alle Koordinaten.</li>
+          <li><b>Ablesen oder drucken</b> — Punkte und Strecken in Millimeter, oder den Ausschnitt 1:1 als PDF.</li>
+        </ol>
+        <p class="guide-tips">
+          Ziehen verschiebt · Mausrad zoomt · <b>ⓘ</b> erklärt jedes Feld · Escape schliesst Erklärungen
+        </p>
+      </div>
+      <div class="viewbtns">
+        <button class="btn tiny" id="help" title="Kurzanleitung">?</button>
+      </div>
       <div class="hud" id="hud"></div>
     </div>
   </div>
@@ -689,6 +730,7 @@ function loadFile(f){
     applyDpi(parseFloat(document.getElementById('dpi').value), true);
     buildSource();
     drop.style.display='none';
+    if(!guideOpen) document.getElementById('guide').hidden=true;
     fit(); renderList(); calStatus(); cropUI(); markDone(1);
   };
   im.onerror=()=>{ alert('Bild konnte nicht gelesen werden.'); };
@@ -1313,7 +1355,35 @@ function buildInfos(){
   });
 }
 buildInfos();
-document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeTips(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeTips(); closeGuide(); } });
+
+/* ---------- Kurzanleitung ---------- */
+/* Ohne Scan ist sie der Startbildschirm und bleibt stehen. Erst wenn ein Bild
+   geladen ist, lässt sie sich über „?“ holen und wieder wegklicken. */
+
+let guideOpen = false;
+const guide = document.getElementById('guide');
+const guideClose = document.getElementById('guide-close');
+const helpBtn = document.getElementById('help');
+
+function closeGuide(){
+  if(!guideOpen) return;
+  guideOpen = false;
+  guide.hidden = true;
+}
+helpBtn.onclick = ()=>{
+  if(!S.img) return;
+  guideOpen = !guideOpen;
+  guide.hidden = !guideOpen;
+  guideClose.hidden = false;
+};
+guideClose.onclick = closeGuide;
+document.addEventListener('pointerdown', e=>{
+  if(!guideOpen) return;
+  if(guide.contains(e.target)) return;
+  if(helpBtn.contains(e.target)) return;   /* sonst ginge sie sofort wieder zu */
+  closeGuide();
+}, true);
 
 window.addEventListener('resize', resize);
 resize(); renderList(); cropUI();
