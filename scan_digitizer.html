@@ -3,29 +3,51 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Scan-Digitizer – MakerEdu</title>
+<title>Scan-Digitizer · MakerEdu</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231A1A1A'/%3E%3Cpath d='M8 23V9h3.5L16 16l4.5-7H24v14h-3v-9l-4.2 6.4h-1.6L11 14v9z' fill='%23fff'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
-  --dark:#1A1A1A;
-  --petrol:#2E6E6B;
-  --petrol-dark:#255856;
-  --bg:#F5F4F1;
-  --card:#FFFFFF;
+  /* ===== MakerEdu-Grundblock — in allen Werkzeugen wortgleich ===== */
+  --ink:#1A1A1A;
+  --ink-soft:#8A8680;
+  --ink-faint:#B5B2AC;
+  --paper:#FFFFFF;
+  --surface:#F5F4F1;
   --line:#E2E0DC;
-  --muted:#8A8680;
-  --warn:#A8552E;
+  --line-lt:#EEEDE9;
+  --grid:#EDEBE6;
+  --grid-10:#DCD9D3;
+  --accent:#2E6E6B;
+  --accent-dark:#255957;
+  --accent-soft:#EAF1EF;
+  --bad:#DC2626;
+  --bad-soft:rgba(220,38,38,.10);
+  --warn:#D97706;
+  --warn-bg:#FFFBEB;
+  --warn-soft:rgba(217,119,6,.12);
+  --warn-ink:#92400E;
+  --radius:8px;
+  --radius-sm:5px;
+  --shadow:0 1px 4px rgba(0,0,0,.07);
+  --shadow-md:0 4px 16px rgba(0,0,0,.1);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
+[hidden]{display:none !important}
+html{height:100%}
 body{
-  font-family:'DM Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
-  background:var(--bg);color:var(--dark);
-  height:100dvh;display:flex;flex-direction:column;overflow:hidden;
+  height:100vh;height:100dvh;
+  font-family:'DM Sans',Inter,"Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif;
+  font-size:14px;line-height:1.45;color:var(--ink);background:var(--surface);
+  font-variant-numeric:tabular-nums;
+  display:flex;flex-direction:column;overflow:hidden;
 }
+button,input,select{font:inherit;font-variant-numeric:tabular-nums;color:inherit}
+
+/* ===== Kopfzeile — in allen Werkzeugen wortgleich ===== */
 .app-header{
   flex:0 0 auto;background:#1A1A1A;color:#fff;padding:0;height:52px;
   display:flex;align-items:center;z-index:200;
@@ -41,7 +63,7 @@ body{
 .app-header-link:hover{opacity:.75}
 .app-header-mark{
   width:28px;height:28px;background:#FFF;border-radius:6px;display:grid;
-  place-items:center;color:#1A1A1A;font-weight:800;font-size:13px;flex-shrink:0;
+  place-items:center;color:#1A1A1A;font-weight:700;font-size:13px;flex-shrink:0;
 }
 .app-header-brand{color:#FFF;font-size:15px;font-weight:600;letter-spacing:-.2px}
 .app-header-sep{color:rgba(255,255,255,.35);font-size:15px;margin:0 2px}
@@ -53,72 +75,139 @@ body{
   font-size:10px;font-weight:500;background:rgba(255,255,255,.15);
   padding:3px 9px;border-radius:20px;letter-spacing:.5px;text-transform:uppercase;
 }
-.shell{flex:1;display:flex;min-height:0;max-width:1400px;width:100%;margin:0 auto}
-.side{
-  width:352px;flex:0 0 352px;overflow-y:auto;padding:16px 12px 40px 16px;
-  display:flex;flex-direction:column;gap:12px;
+
+/* ===== Spalte und Abschnitte — wie im Aussenkontur-Werkzeug ===== */
+main{flex:1 1 auto;display:flex;min-height:0}
+aside{
+  flex:0 0 352px;background:var(--paper);border-right:1px solid var(--line);
+  overflow-y:auto;padding:16px 18px 40px;
 }
-.stage{flex:1;min-width:0;padding:16px 16px 16px 4px;display:flex;flex-direction:column}
+details.sect{margin-bottom:14px;border-top:1px solid var(--line-lt);padding-top:12px}
+details.sect>summary{
+  list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;
+  font-size:11px;font-weight:600;color:var(--ink-soft);
+  text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;
+}
+details.sect>summary::-webkit-details-marker{display:none}
+details.sect>summary::after{
+  content:'';margin-left:auto;width:0;height:0;border-left:4px solid var(--ink-faint);
+  border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;
+  transition:transform .15s;
+}
+details.sect[open]>summary::after{transform:rotate(90deg)}
+details.sect>summary:hover{color:var(--ink)}
+.step{
+  flex:0 0 auto;width:19px;height:19px;border-radius:4px;
+  background:var(--surface);color:var(--ink-soft);
+  font-size:10.5px;font-weight:600;display:grid;place-items:center;letter-spacing:0;
+}
+details.sect.done>summary .step{background:var(--accent);color:#fff}
+#s1{border-top:none;padding-top:0}   /* erster Abschnitt braucht keine Trennlinie */
+
+/* ===== Zeilen, Felder, Erklärungen — wortgleich ===== */
+.row{display:flex;align-items:center;gap:8px;margin-bottom:9px;position:relative}
+.row label{font-size:13px;color:var(--ink)}
+.row input,.row select{margin-left:auto}
+.row.stack{flex-wrap:wrap}
+.row.stack select,.row.stack input[type=range]{
+  flex:1 0 100%;margin-left:0;margin-top:6px;width:100%;
+}
+.hint{font-size:11.5px;color:var(--ink-faint);margin:-2px 0 9px}
+.sub{
+  font-size:11px;font-weight:600;color:var(--ink-soft);
+  text-transform:uppercase;letter-spacing:.6px;margin:12px 0 6px;
+}
+
+input[type=number],input[type=text]{
+  width:88px;padding:8px 11px;text-align:right;
+  border:1px solid var(--line);border-radius:var(--radius-sm);
+  background:var(--surface);transition:border-color .15s,background .15s;
+}
+input[type=number]:focus,input[type=text]:focus{border-color:var(--accent);background:var(--paper)}
+input:focus-visible,select:focus-visible,button:focus-visible,canvas:focus-visible{
+  outline:2px solid var(--accent);outline-offset:1px;
+}
+input:disabled{opacity:.5}
+select{padding:8px 11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer}
+.chk input{width:16px;height:16px;accent-color:var(--accent)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px}
+.grid2 label{
+  display:block;font-size:10px;font-weight:600;color:var(--ink-soft);
+  text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;
+}
+.grid2 input{width:100%;padding:6px 8px;font-size:12px}
+
+.info{
+  width:16px;height:16px;flex:0 0 auto;padding:0;
+  border:1px solid var(--line);border-radius:50%;background:var(--paper);
+  color:var(--ink-faint);font-size:10px;font-weight:600;font-style:italic;
+  line-height:1;display:inline-flex;align-items:center;justify-content:center;cursor:help;
+}
+.info:hover,.info[aria-expanded="true"]{border-color:var(--accent);color:var(--accent)}
+.tip{
+  position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:30;display:none;
+  background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow-md);
+  padding:10px 12px;font-size:11.5px;line-height:1.45;color:var(--ink);
+}
+.tip.show{display:block}
+
+/* ===== Schaltflächen — wortgleich ===== */
+.btn{
+  padding:9px 16px;border:1px solid var(--line);border-radius:var(--radius-sm);
+  background:var(--surface);cursor:pointer;font-size:13px;font-weight:500;
+  transition:border-color .15s,background .15s;
+}
+.btn:hover{border-color:var(--ink-soft)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent-dark);border-color:var(--accent-dark)}
+.btn.wide{width:100%;text-align:center;justify-content:center}
+.btn.tiny{padding:6px 12px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.mode.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px}
+
+/* ===== Zeichenfläche ===== */
+#stage{flex:1 1 auto;position:relative;background:var(--surface);min-width:0;padding:16px;display:flex}
 .canvas-wrap{
-  flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px;
+  flex:1;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
   position:relative;overflow:hidden;min-height:0;
 }
 canvas#view{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
 .hud{
   position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,.94);
-  border:1px solid var(--line);border-radius:8px;padding:7px 11px;
-  font-size:13px;font-variant-numeric:tabular-nums;pointer-events:none;
+  border:1px solid var(--line);border-radius:var(--radius-sm);padding:7px 11px;
+  font-size:12.5px;color:var(--ink-soft);pointer-events:none;
 }
-.hud .no-cal{color:var(--warn)}
+.hud b{font-weight:600;color:var(--ink)}
+.hud .no-cal{color:var(--warn-ink)}
 .dropzone{
   position:absolute;inset:0;display:grid;place-items:center;text-align:center;
-  color:var(--muted);font-size:15px;padding:24px;
+  color:var(--ink-faint);font-size:15px;padding:24px;
 }
-.dropzone.over{background:rgba(46,110,107,.07);color:var(--petrol)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
-.card h2{font-size:14px;font-weight:700;margin-bottom:10px}
-.card p.hint{font-size:12.5px;color:var(--muted);line-height:1.45;margin-top:8px}
-label.f{display:block;font-size:12.5px;color:var(--muted);margin-bottom:4px}
-.row{display:flex;gap:8px;align-items:center}
-.row+.row{margin-top:9px}
-input[type=number],input[type=text],select{
-  font-family:inherit;font-size:14px;padding:7px 9px;border:1px solid var(--line);
-  border-radius:7px;background:#fff;color:var(--dark);width:100%;min-width:0;
-}
-input:focus-visible,select:focus-visible,button:focus-visible{
-  outline:2px solid var(--petrol);outline-offset:1px;
-}
-button{
-  font-family:inherit;font-size:13.5px;font-weight:500;padding:8px 12px;border-radius:7px;
-  border:1px solid var(--line);background:#fff;color:var(--dark);cursor:pointer;
-}
-button:hover{background:#FAF9F7}
-button.primary{background:var(--petrol);border-color:var(--petrol);color:#fff}
-button.primary:hover{background:var(--petrol-dark)}
-button:disabled{opacity:.45;cursor:not-allowed}
-button.wide{width:100%}
-.modes{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-button.mode.active{background:var(--petrol);border-color:var(--petrol);color:#fff}
-.status{font-size:12.5px;margin-top:9px;line-height:1.45}
-.status.ok{color:var(--petrol)}
-.status.warn{color:var(--warn)}
-.status.dim{color:var(--muted)}
-table{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
-th{text-align:left;font-weight:500;color:var(--muted);padding:3px 4px;border-bottom:1px solid var(--line)}
-td{padding:3px 4px;border-bottom:1px solid var(--line)}
+.dropzone.over{background:var(--accent-soft);color:var(--accent)}
+
+/* ===== Statuszeilen und Listen ===== */
+.status{font-size:11.5px;line-height:1.45;margin-top:9px;color:var(--ink-faint)}
+.status.ok{color:var(--accent)}
+.status.warn{color:var(--warn-ink)}
+.status.dim{color:var(--ink-faint)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;font-weight:600;color:var(--ink-soft);padding:4px;border-bottom:1px solid var(--line)}
+td{padding:4px;border-bottom:1px solid var(--line-lt)}
 td.num{text-align:right}
-td button{padding:1px 6px;font-size:12px;border:none;background:none;color:var(--muted)}
-td button:hover{color:var(--warn);background:none}
-.scroll{max-height:150px;overflow-y:auto;margin-top:2px}
-.sub{font-size:12px;color:var(--muted);margin:12px 0 0;font-weight:500}
-input[type=range]{width:100%;accent-color:var(--petrol)}
-.chk{display:flex;align-items:center;gap:8px;font-size:13.5px;margin-top:7px}
-.chk input{width:16px;height:16px;accent-color:var(--petrol)}
-.empty{font-size:12.5px;color:var(--muted);padding:8px 2px}
+td button{padding:1px 6px;font-size:12px;border:none;background:none;color:var(--ink-faint);cursor:pointer}
+td button:hover{color:var(--bad)}
+.scroll{max-height:150px;overflow-y:auto}
+.empty{font-size:11.5px;color:var(--ink-faint);padding:6px 2px}
+
 @media (max-width:900px){
-  .shell{flex-direction:column}
-  .side{width:100%;flex:0 0 auto;max-height:45vh;padding:12px}
-  .stage{padding:0 12px 12px}
+  main{flex-direction:column}
+  aside{flex:0 0 auto;width:100%;border-right:none;border-bottom:1px solid var(--line);max-height:46vh}
+  #stage{min-height:340px;padding:12px}
+  .app-header-inner{padding:0 14px}
 }
 </style>
 </head>
@@ -136,58 +225,53 @@ input[type=range]{width:100%;accent-color:var(--petrol)}
   </div>
 </div>
 
-<div class="shell">
-  <aside class="side">
+<main>
+  <aside>
 
-    <div class="card">
-      <h2>1 · Scan laden</h2>
-      <input type="file" id="file" accept="image/*" style="font-size:13px">
-      <p class="hint">Flachbettscan, 300 oder 600 dpi. Bild kann auch ins Fenster gezogen werden.</p>
-    </div>
+    <details class="sect" id="s1" open>
+      <summary><span class="step">1</span> Scan laden</summary>
+      <button class="btn primary wide" id="pick">Scan öffnen</button>
+      <input type="file" id="file" accept="image/*" hidden>
+      <p class="hint" style="margin-top:9px">Flachbettscan mit 300 oder 600 dpi. Auch per Ablegen auf die Zeichenfläche.</p>
+    </details>
 
-    <div class="card">
-      <h2>2 · Massstab</h2>
-      <div class="row">
-        <div style="flex:1">
-          <label class="f" for="dpi">Scan-Auflösung (dpi)</label>
-          <input type="number" id="dpi" value="300" min="30" step="10">
-        </div>
-        <button id="btn-dpi" style="margin-top:18px">Setzen</button>
+    <details class="sect" id="s2">
+      <summary><span class="step">2</span> Massstab</summary>
+      <div class="row" data-info="Die Auflösung, mit der eingescannt wurde. Daraus ergibt sich, wie viele Millimeter ein Bildpunkt misst. Stimmt die Angabe nicht, stimmen alle Masse nicht.">
+        <label for="dpi">Auflösung (dpi)</label>
+        <input type="number" id="dpi" value="300" min="50" step="50">
       </div>
-      <div class="row">
-        <button class="mode wide" id="m-kalib">Zwei Punkte messen</button>
-      </div>
+      <button class="btn wide" id="btn-dpi">Auflösung übernehmen</button>
+      <button class="btn wide mode" id="m-kalib" style="margin-top:7px">Zwei Punkte messen</button>
       <div id="cal-status" class="status dim">Noch nicht kalibriert – Messwerte sind gesperrt.</div>
-      <p class="hint">Die Zwei-Punkt-Referenz ist der verlässlichere Weg. Gute Vorlage: 14 Abstände der Pinleiste = 35.56&nbsp;mm.</p>
-    </div>
+      <p class="hint" style="margin-top:9px">Die Zwei-Punkt-Referenz ist der verlässlichere Weg. Gute Vorlage: 14 Abstände der Pinleiste = 35.56 mm.</p>
+    </details>
 
-    <div class="card">
-      <h2>3 · Ausrichten</h2>
-      <button class="mode wide" id="m-rot">Zwei Punkte waagrecht setzen</button>
-      <div class="row">
-        <div style="flex:1">
-          <label class="f" for="rot">Drehung fein (°)</label>
-          <input type="number" id="rot" value="0" step="0.05">
-        </div>
-        <button id="btn-rot0" style="margin-top:18px">0°</button>
+    <details class="sect" id="s3">
+      <summary><span class="step">3</span> Ausrichten</summary>
+      <button class="btn wide mode" id="m-rot">Zwei Punkte waagrecht setzen</button>
+      <div class="row" style="margin-top:9px" data-info="Feinkorrektur der Drehung in Grad. Positive Werte drehen im Uhrzeigersinn, gleich wie in Word und XCS.">
+        <label for="rot">Drehung (°)</label>
+        <input type="number" id="rot" value="0" step="0.1">
       </div>
-    </div>
+      <button class="btn tiny" id="btn-rot0">Auf 0° zurück</button>
+    </details>
 
-    <div class="card">
-      <h2>4 · Nullpunkt</h2>
-      <button class="mode wide" id="m-null">Nullpunkt klicken</button>
+    <details class="sect" id="s4">
+      <summary><span class="step">4</span> Nullpunkt</summary>
+      <button class="btn wide mode" id="m-null">Nullpunkt klicken</button>
       <div class="row" style="margin-top:7px">
-        <button id="btn-null-center" style="flex:1">Bildmitte</button>
-        <button id="btn-null-corner" style="flex:1">Bildecke</button>
+        <button class="btn tiny" id="btn-null-center" style="flex:1">Bildmitte</button>
+        <button class="btn tiny" id="btn-null-corner" style="flex:1">Bildecke</button>
       </div>
-    </div>
+      <p class="hint">Alle Koordinaten zählen ab hier.</p>
+    </details>
 
-    <div class="card">
-      <h2>5 · Koordinaten ablesen</h2>
-      <p class="hint" style="margin-top:0;margin-bottom:11px">Alle Werte in Millimeter ab Nullpunkt – zum Übertragen nach SketchUp.</p>
+    <details class="sect" id="s5" open>
+      <summary><span class="step">5</span> Koordinaten ablesen</summary>
       <div class="modes">
-        <button class="mode" id="m-punkt">Punkt: x / y</button>
-        <button class="mode" id="m-strecke">Strecke: Länge</button>
+        <button class="btn mode" id="m-punkt">Punkt x/y</button>
+        <button class="btn mode" id="m-strecke">Strecke</button>
       </div>
       <div id="meas-status" class="status dim">Klick setzt einen Punkt und schreibt x/y in die Liste.</div>
       <div class="sub">Punkte</div>
@@ -195,103 +279,85 @@ input[type=range]{width:100%;accent-color:var(--petrol)}
       <div class="sub">Strecken</div>
       <div class="scroll" id="list-s"></div>
       <div class="row" style="margin-top:12px">
-        <button id="btn-csv" style="flex:1">CSV speichern</button>
-        <button id="btn-clear" style="flex:1">Alles löschen</button>
+        <button class="btn tiny" id="btn-csv" style="flex:1">CSV speichern</button>
+        <button class="btn tiny" id="btn-clear" style="flex:1">Alles löschen</button>
       </div>
-    </div>
+      <p class="hint" style="margin-top:9px">Alle Werte in Millimeter ab Nullpunkt – zum Übertragen nach SketchUp.</p>
+    </details>
 
-    <div class="card">
-      <h2>6 · Darstellung</h2>
+    <details class="sect" id="s6">
+      <summary><span class="step">6</span> Darstellung</summary>
       <label class="chk"><input type="checkbox" id="c-grid" checked> Millimeterraster</label>
       <label class="chk"><input type="checkbox" id="c-axes" checked> Achsen und Beschriftung</label>
       <label class="chk"><input type="checkbox" id="c-img" checked> Scan anzeigen</label>
-      <div class="row" style="margin-top:10px">
-        <div style="flex:1">
-          <label class="f" for="gridcol">Rasterfarbe</label>
-          <select id="gridcol">
-            <option value="grau">Grau</option>
-            <option value="rot">Rot</option>
-            <option value="blau">Blau</option>
-            <option value="gruen">Grün</option>
-            <option value="schwarz">Schwarz</option>
-          </select>
-        </div>
+      <div class="row stack" style="margin-top:11px" data-info="Farbe des Rasters. Auf dunklen oder bunten Scans ist ein farbiges Raster besser zu unterscheiden.">
+        <label for="gridcol">Rasterfarbe</label>
+        <select id="gridcol">
+          <option value="grau">Grau</option>
+          <option value="rot">Rot</option>
+          <option value="blau">Blau</option>
+          <option value="gruen">Grün</option>
+          <option value="schwarz">Schwarz</option>
+        </select>
       </div>
-      <div class="row" style="margin-top:12px">
-        <div style="flex:1">
-          <label class="f" for="bgmode">Hintergrund entfernen</label>
-          <select id="bgmode">
-            <option value="none">aus</option>
-            <option value="hell">helle Fläche</option>
-            <option value="dunkel">dunkle Fläche</option>
-          </select>
-        </div>
+      <div class="row stack" data-info="Blendet die Papierfläche aus, damit nur die Zeichnung stehen bleibt. „helle Fläche“ für dunkle Striche auf weißem Papier, „dunkle Fläche“ umgekehrt.">
+        <label for="bgmode">Hintergrund entfernen</label>
+        <select id="bgmode">
+          <option value="none">aus</option>
+          <option value="hell">helle Fläche</option>
+          <option value="dunkel">dunkle Fläche</option>
+        </select>
       </div>
-      <div class="row" style="margin-top:8px">
-        <div style="flex:1">
-          <label class="f" for="bgthr">Schwelle <span id="bgthr-val">235</span></label>
-          <input type="range" id="bgthr" min="0" max="255" value="235" disabled>
-        </div>
+      <div class="row stack" data-info="Ab welchem Helligkeitswert eine Stelle als Hintergrund gilt. Unter der Zeile steht, wie viel Prozent der Fläche gerade entfernt werden.">
+        <label for="bgthr">Schwelle <span id="bgthr-val">235</span></label>
+        <input type="range" id="bgthr" min="0" max="255" value="235" disabled>
       </div>
       <div id="bg-status" class="status dim">Scan wird unverändert angezeigt.</div>
-      <div class="row" style="margin-top:10px">
-        <button id="btn-fit" class="wide">Ansicht einpassen</button>
-      </div>
-    </div>
+      <button class="btn wide" id="btn-fit" style="margin-top:11px">Ansicht einpassen</button>
+    </details>
 
-    <div class="card">
-      <h2>7 · Drucken 1:1</h2>
-      <button class="mode wide" id="m-crop">Ausschnitt aufziehen</button>
-      <div class="row" style="margin-top:7px">
-        <div style="flex:1"><label class="f" for="cx">x links (mm)</label><input type="number" id="cx" step="0.5" disabled></div>
-        <div style="flex:1"><label class="f" for="cy">y unten (mm)</label><input type="number" id="cy" step="0.5" disabled></div>
+    <details class="sect" id="s7">
+      <summary><span class="step">7</span> Drucken 1:1</summary>
+      <button class="btn wide mode" id="m-crop">Ausschnitt aufziehen</button>
+      <div class="grid2" style="margin-top:9px">
+        <div><label for="cx">x links (mm)</label><input type="number" id="cx" step="1" disabled></div>
+        <div><label for="cy">y unten (mm)</label><input type="number" id="cy" step="1" disabled></div>
+        <div><label for="cw">Breite (mm)</label><input type="number" id="cw" step="1" min="1" disabled></div>
+        <div><label for="chh">Höhe (mm)</label><input type="number" id="chh" step="1" min="1" disabled></div>
       </div>
-      <div class="row">
-        <div style="flex:1"><label class="f" for="cw">Breite (mm)</label><input type="number" id="cw" step="0.5" min="1" disabled></div>
-        <div style="flex:1"><label class="f" for="chh">Höhe (mm)</label><input type="number" id="chh" step="0.5" min="1" disabled></div>
-      </div>
-      <div class="row" style="margin-top:7px">
-        <button id="btn-crop-clear" class="wide">Ausschnitt aufheben</button>
-      </div>
+      <button class="btn tiny" id="btn-crop-clear">Ausschnitt aufheben</button>
       <div id="crop-status" class="status dim">Kein Ausschnitt – gedruckt wird der ganze Scan.</div>
-      <div class="row" style="margin-top:12px">
-        <div style="flex:1">
-          <label class="f" for="fmt">Format</label>
-          <select id="fmt">
-            <option value="a4p">A4 hoch</option>
-            <option value="a4l">A4 quer</option>
-            <option value="a3p">A3 hoch</option>
-            <option value="a3l">A3 quer</option>
-          </select>
-        </div>
-        <div style="flex:1">
-          <label class="f" for="corr">Korrektur (%)</label>
-          <input type="number" id="corr" value="100" step="0.1" min="90" max="110">
-        </div>
+      <div class="row stack" style="margin-top:11px" data-info="Blattformat des Druckers. Passt der Ausschnitt nicht darauf, wird er beschnitten – die Statuszeile sagt es vorher.">
+        <label for="fmt">Format</label>
+        <select id="fmt">
+          <option value="a4p">A4 hoch</option>
+          <option value="a4l">A4 quer</option>
+          <option value="a3p">A3 hoch</option>
+          <option value="a3l">A3 quer</option>
+        </select>
       </div>
-      <div class="row">
-        <div style="flex:1">
-          <label class="f" for="rand">Blattrand (mm)</label>
-          <input type="number" id="rand" value="12" step="1" min="0" max="40">
-        </div>
-        <div style="flex:1"></div>
+      <div class="row" data-info="Gleicht aus, dass Drucker nicht exakt massgetreu ausgeben. 100 % heißt unverändert. Nach dem ersten Druck den Kontrollwinkel nachmessen und hier korrigieren.">
+        <label for="corr">Korrektur (%)</label>
+        <input type="number" id="corr" value="100" step="0.1" min="90" max="110">
       </div>
-      <div class="row">
-        <button class="primary wide" id="btn-pdf">PDF erzeugen</button>
+      <div class="row" data-info="Unbedruckter Streifen rund ums Blatt. Darin liegt auch der 100-mm-Kontrollwinkel.">
+        <label for="rand">Blattrand (mm)</label>
+        <input type="number" id="rand" value="12" step="1" min="0" max="40">
       </div>
-      <p class="hint">Im Druckdialog «Tatsächliche Grösse» wählen. Danach den 100-mm-Winkel auf dem Blatt nachmessen: bei 99.4&nbsp;mm hier 100.6 eintragen und neu erzeugen.</p>
-    </div>
+      <button class="btn primary wide" id="btn-pdf" style="margin-top:7px">PDF erzeugen</button>
+      <p class="hint" style="margin-top:9px">Im Druckdialog «Tatsächliche Grösse» wählen. Danach den 100-mm-Winkel auf dem Blatt nachmessen: bei 99.4 mm hier 100.6 eintragen und neu erzeugen.</p>
+    </details>
 
   </aside>
 
-  <main class="stage">
+  <div id="stage">
     <div class="canvas-wrap" id="wrap">
-      <canvas id="view"></canvas>
-      <div class="dropzone" id="drop">Scan hierher ziehen oder oben auswählen</div>
+      <canvas id="view" tabindex="0"></canvas>
+      <div class="dropzone" id="drop">Scan hierher ziehen oder links auswählen</div>
       <div class="hud" id="hud"></div>
     </div>
-  </main>
-</div>
+  </div>
+</main>
 
 <script>
 (function(){
@@ -623,7 +689,7 @@ function loadFile(f){
     applyDpi(parseFloat(document.getElementById('dpi').value), true);
     buildSource();
     drop.style.display='none';
-    fit(); renderList(); calStatus(); cropUI();
+    fit(); renderList(); calStatus(); cropUI(); markDone(1);
   };
   im.onerror=()=>{ alert('Bild konnte nicht gelesen werden.'); };
   im.src=url;
@@ -669,6 +735,7 @@ function applyDpi(dpi, silent){
 }
 document.getElementById('btn-dpi').onclick=()=>{
   applyDpi(parseFloat(document.getElementById('dpi').value), false);
+  if(S.img) markDone(2);
 };
 
 function calStatus(){
@@ -783,7 +850,7 @@ function handleClick(s){
   const q=sToQ(s);
   if(S.mode==='crop'){ S.crop=null; cropUI(); draw(); return; }
   if(S.mode==='nullp'){
-    S.origin={x:q.x,y:q.y}; draw(); renderList(); return;
+    S.origin={x:q.x,y:q.y}; draw(); renderList(); markDone(4); return;
   }
   if(S.mode==='punkt'){
     if(S.mmPerPx==null){ needCal(); return; }
@@ -805,7 +872,7 @@ function handleClick(s){
       const mm=parseFloat(String(inp).replace(',','.'));
       if(mm>0){
         S.mmPerPx=mm/px; S.calSource='punkte';
-        calStatus(); renderList();
+        calStatus(); renderList(); markDone(2);
       } else msg('Ungültiger Wert.','warn');
     }
     draw(); return;
@@ -816,7 +883,7 @@ function handleClick(s){
     if(ang<-Math.PI/2) ang+=Math.PI;
     rotateBy(-ang);
     document.getElementById('rot').value=(S.theta*180/Math.PI).toFixed(2);
-    draw(); return;
+    draw(); markDone(3); return;
   }
 }
 function needCal(){ msg('Zuerst den Massstab setzen (Schritt 2).','warn'); }
@@ -833,16 +900,16 @@ function rotateBy(d){
 document.getElementById('rot').addEventListener('change', e=>{
   const target=parseFloat(e.target.value)*Math.PI/180;
   if(isNaN(target)) return;
-  rotateBy(target - S.theta); draw(); renderList();
+  rotateBy(target - S.theta); draw(); renderList(); markDone(3);
 });
 document.getElementById('btn-rot0').onclick=()=>{
   rotateBy(-S.theta); document.getElementById('rot').value='0'; draw(); renderList();
 };
-document.getElementById('btn-null-center').onclick=()=>{ S.origin={x:0,y:0}; draw(); renderList(); };
+document.getElementById('btn-null-center').onclick=()=>{ S.origin={x:0,y:0}; draw(); renderList(); markDone(4); };
 document.getElementById('btn-null-corner').onclick=()=>{
   const c=imgCornersQ();
   S.origin={x:Math.min(...c.map(p=>p.x)), y:Math.max(...c.map(p=>p.y))};
-  draw(); renderList();
+  draw(); renderList(); markDone(4);
 };
 
 /* ---------- Liste ---------- */
@@ -1182,6 +1249,68 @@ function printFallback(dataUrl, wmm, hmm, pw, ph, mleft, mtop, m, corr){
     '<script>window.onload=function(){window.print()}<\/script></body></html>');
   w.document.close();
 }
+
+/* ---------- Schritte: erledigte zuklappen ---------- */
+
+const doneSteps = new Set();
+const sect = n => document.getElementById('s'+n);
+
+function markDone(n){
+  const el = sect(n);
+  if(el) el.classList.add('done');
+  if(doneSteps.has(n)) return;
+  doneSteps.add(n);
+  if(el) el.open = false;
+  for(let k=n+1; k<=5; k++){
+    if(!doneSteps.has(k)){
+      const nx = sect(k);
+      if(nx) nx.open = true;
+      break;
+    }
+  }
+}
+
+document.getElementById('pick').onclick = ()=>document.getElementById('file').click();
+
+/* ---------- Erklärungen ---------- */
+
+let tipSeq = 0;
+function closeTips(){
+  document.querySelectorAll('.tip.show').forEach(t=>{
+    t.classList.remove('show');
+    const o = t.parentElement.querySelector('.info');
+    if(o) o.setAttribute('aria-expanded','false');
+  });
+}
+function buildInfos(){
+  document.querySelectorAll('[data-info]').forEach(row=>{
+    if(row.querySelector('.info')) return;
+    const lab = row.querySelector('label');
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'info'; b.textContent = 'i';
+    b.setAttribute('aria-label', 'Erklärung zu ' + (lab ? lab.textContent.trim() : 'dieser Einstellung'));
+    b.setAttribute('aria-expanded', 'false');
+    const tip = document.createElement('div');
+    tip.className = 'tip'; tip.setAttribute('role','tooltip');
+    tip.id = 'tip' + (++tipSeq);
+    tip.textContent = row.getAttribute('data-info');
+    b.setAttribute('aria-describedby', tip.id);
+    const show = v=>{
+      if(v) closeTips();
+      tip.classList.toggle('show', v);
+      b.setAttribute('aria-expanded', v ? 'true' : 'false');
+    };
+    b.addEventListener('mouseenter', ()=>show(true));
+    b.addEventListener('mouseleave', ()=>{ if(document.activeElement !== b) show(false); });
+    b.addEventListener('focus', ()=>show(true));
+    b.addEventListener('blur',  ()=>show(false));
+    b.addEventListener('click', e=>{ e.preventDefault(); show(!tip.classList.contains('show')); });
+    lab ? lab.after(b) : row.prepend(b);
+    row.appendChild(tip);
+  });
+}
+buildInfos();
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeTips(); });
 
 window.addEventListener('resize', resize);
 resize(); renderList(); cropUI();
