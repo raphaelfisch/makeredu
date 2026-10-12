@@ -103,6 +103,10 @@ select{padding:8px 11px;border:1px solid var(--line);border-radius:var(--radius-
   line-height:1;display:inline-flex;align-items:center;justify-content:center;cursor:help;
 }
 .info:hover,.info[aria-expanded="true"]{border-color:var(--accent);color:var(--accent)}
+.hint.stale{
+  color:var(--accent);background:var(--accent-soft);
+  border-radius:var(--radius-sm);padding:8px 10px;margin:8px 0 0;
+}
 .tip{
   position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:30;display:none;
   background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
@@ -203,7 +207,12 @@ select{padding:8px 11px;border:1px solid var(--line);border-radius:var(--radius-
   <section id="listWrap" hidden>
     <h2>Teile</h2>
     <ul id="parts"></ul>
+    <div class="row" data-info="Kleinste Luft zwischen zwei Teilen, damit die Schnittfugen nicht ineinanderlaufen. Gilt beim automatischen Anordnen und als Rastabstand beim Ziehen. Beim ausgewählten Teil wird die Zone angezeigt; zu enge Teile werden gelb markiert.">
+      <label for="gap">Abstand (mm)</label>
+      <input type="number" id="gap" value="5" min="0" max="100" step="1">
+    </div>
     <button class="btn wide" id="autoarr">Automatisch anordnen</button>
+    <p class="hint stale" id="arrhint" hidden></p>
   </section>
 
   <section id="opts" hidden>
@@ -229,10 +238,6 @@ select{padding:8px 11px;border:1px solid var(--line);border-radius:var(--radius-
     <div class="row" data-info="Sicherheitszone zur Materialkante. Hält die Teile von unsauberen Plattenkanten und von der Klemmleiste weg. Beim Ziehen rasten Teile an dieser Linie ein.">
       <label for="margin">Rand (mm)</label>
       <input type="number" id="margin" value="5" min="0" max="200" step="1">
-    </div>
-    <div class="row" data-info="Kleinste Luft zwischen zwei Teilen, damit die Schnittfugen nicht ineinanderlaufen. Gilt beim automatischen Anordnen, als Rastabstand beim Ziehen, und wird laufend an den echten Konturen geprüft: zu enge Teile werden gelb markiert.">
-      <label for="gap">Abstand (mm)</label>
-      <input type="number" id="gap" value="5" min="0" max="100" step="1">
     </div>
     <button class="btn wide" id="fitsheet">Blatt an Teile anpassen</button>
     <div class="row" data-info="„Ganzes Blatt“ schreibt die Blattgrösse ins SVG, die Teile liegen an ihrer Position. „Eng um die Teile“ beschneidet knapp um die Konturen.">
@@ -619,13 +624,29 @@ function layout(){
   const w = o.full ? o.sheet  : Math.max(0, x1-x0);
   const h = o.full ? o.sheetH : Math.max(0, y1-y0);
   const over = any && (x0 < -1e-6 || y0 < -1e-6 || x1 > o.sheet + 1e-6 || y1 > o.sheetH + 1e-6);
-  return {items, w, h, o, ox:o.full?0:x0, oy:o.full?0:y0, x0, y0, x1, y1, over,
+  /* Für das ausgewählte Teil den echten Abstand zum nächsten Nachbarn messen —
+     nur ein Teil gegen die übrigen, daher günstig. */
+  let selClear = null;
+  if(sel >= 0 && sel < items.length && items[sel].world.length){
+    const a = items[sel];
+    for(let j=0;j<items.length;j++){
+      if(j === sel || !items[j].world.length) continue;
+      if(boxGap(a, items[j]) > 60) continue;          /* weit weg, nicht rechnen */
+      const d = ringsClearance(a.world, items[j].world);
+      if(selClear === null || d < selClear) selClear = d;
+    }
+  }
+  return {items, w, h, o, ox:o.full?0:x0, oy:o.full?0:y0, x0, y0, x1, y1, over, selClear,
           anyBad:items.some(it=>it.bad), anyNear:items.some(it=>it.near)};
 }
+
+/* Mit welchen Werten wurde zuletzt angeordnet? Für den Hinweis. */
+let arranged = null;
 
 /* Regalpackung, schreibt die Positionen */
 function autoArrange(){
   const o = opt();
+  arranged = {gap:o.gap, margin:o.margin, sheet:o.sheet};
   const m = o.margin;
   const usable = Math.max(1, o.sheet - 2*m);
   let cx = 0, cy = 0, rowH = 0;
@@ -762,6 +783,23 @@ function draw(){
     if(!it.world.length) return;
     const isSel = idx === sel;
     ctx.lineJoin = 'round';
+    /* Abstandszone des ausgewählten Teils: die Kontur mit doppelter
+       Abstandsbreite nachgezeichnet ergibt genau den Bereich, der frei
+       bleiben soll — wächst und schrumpft mit dem eingestellten Wert. */
+    if(isSel && L.o.gap > 0){
+      ctx.save();
+      ctx.strokeStyle = cs.getPropertyValue('--accent').trim();
+      ctx.globalAlpha = 0.12;
+      ctx.lineWidth = L.o.gap * 2 * view.s;
+      ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+      for(const ring of it.world){
+        ctx.beginPath();
+        ring.forEach((q,i)=> i ? ctx.lineTo(X(q[0]), Y(q[1])) : ctx.moveTo(X(q[0]), Y(q[1])));
+        ctx.closePath(); ctx.stroke();
+      }
+      ctx.restore();
+      ctx.lineJoin = 'round';
+    }
     if(it.bad || it.near){
       ctx.fillStyle = it.bad ? cs.getPropertyValue('--bad-soft').trim()
                              : cs.getPropertyValue('--warn-soft').trim();
@@ -944,6 +982,20 @@ function refresh(){
   $('empty').hidden = has;
   $('readout').hidden = !has;
   $('fit').hidden = !has;
+  /* Hinweis, wenn eine Einstellung seit dem letzten Anordnen geändert wurde */
+  const oh = opt(), ch = [];
+  if(arranged && has){
+    if(parts.length > 1 && arranged.gap !== oh.gap) ch.push('Abstand');
+    if(arranged.margin !== oh.margin) ch.push('Rand');
+    if(arranged.sheet !== oh.sheet) ch.push('Blattbreite');
+  }
+  $('arrhint').hidden = ch.length === 0;
+  if(ch.length){
+    const was = ch.length === 1 ? ch[0] + ' wurde'
+              : ch.slice(0,-1).join(', ') + ' und ' + ch[ch.length-1] + ' wurden';
+    $('arrhint').textContent =
+      was + ' geändert. Die Teile liegen noch wie vorher — „Automatisch anordnen" verteilt sie neu.';
+  }
   if(has){
     renderList();
     const L = layout();
@@ -952,6 +1004,8 @@ function refresh(){
       `<span>Teile <b>${parts.length}</b></span>` +
       `<span>Punkte gesamt <b>${L.items.reduce((s,it)=>s+it.s.n,0)}</b></span>` +
       `<span>Massstab <b>${(L.o.scale*100).toFixed(0)} %</b></span>` +
+      (L.selClear !== null
+        ? `<span>Abstand zum Nachbarn <b>${L.selClear.toFixed(2)} mm</b></span>` : '') +
       (L.over ? `<span style="color:var(--warn)"><b>Teile ragen über das Blatt hinaus</b></span>` : '') +
       (L.anyBad ? `<span style="color:var(--bad)"><b>Teile überlappen sich</b></span>` : '') +
       (L.anyNear && !L.anyBad ? `<span style="color:var(--warn)"><b>Teile liegen näher als der Abstand</b></span>` : '');
@@ -1197,6 +1251,8 @@ $('fitsheet').onclick = ()=>{
   const L2 = layout();
   $('sheetw').value = Math.max(10, Math.ceil(L2.x1 + m));
   $('sheeth').value = Math.max(10, Math.ceil(L2.y1 + m));
+  /* Die Teile sitzen jetzt am Rand des neuen Blattes — kein Anordnen nötig */
+  if(arranged){ arranged.margin = m; arranged.sheet = +$('sheetw').value; }
   view.init = false;
   refresh();
 };
