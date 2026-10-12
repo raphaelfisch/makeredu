@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1A1A1A">
+<title>MakerEdu · STL-Viewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F4F1;
+    --surface:#FFFFFF;
+    --border:#E2E0DC;
+    --ink:#1A1A1A;
+    --muted:#8A8680;
+    --petrol:#2E6E6B;
+    --viewport:#EDEBE7;
+    --font: "DM Sans", ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100vh;height:100dvh;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--font)}
+  body{display:flex;flex-direction:column}
+
+  /* Topbar */
+  .topbar{
+    flex:none;height:52px;padding:0 14px;
+    padding-top:env(safe-area-inset-top);height:calc(52px + env(safe-area-inset-top));
+    background:var(--ink);color:#fff;
+    display:flex;align-items:center;gap:10px;
+  }
+  .mark{
+    flex:none;width:24px;height:24px;border-radius:5px;background:#fff;color:var(--ink);
+    display:grid;place-items:center;font-weight:700;font-size:13px;line-height:1;
+  }
+  .home{
+    display:flex;align-items:center;gap:10px;flex:none;
+    color:#fff;text-decoration:none;border-radius:6px;
+  }
+  .home:active{opacity:.75}
+  .home:focus-visible{outline:2px solid #fff;outline-offset:3px}
+  .crumb{font-size:14px;font-weight:500;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .crumb .sep{color:#6E6A65;margin:0 6px}
+  .crumb .tool{color:#CFCCC7}
+  .grow{flex:1}
+
+  button{
+    font:500 14px/1 var(--font);color:var(--ink);
+    background:var(--surface);border:1px solid var(--border);border-radius:6px;
+    padding:8px 12px;cursor:pointer;flex:none;
+  }
+  button:active{background:#F0EEEA}
+  button:focus-visible{outline:2px solid var(--petrol);outline-offset:2px}
+  .topbar button{background:transparent;border-color:#3A3A3A;color:#EDEBE7;padding:7px 11px}
+  .topbar button:active{background:#2A2A2A}
+  .topbar button.primary{background:var(--petrol);border-color:var(--petrol);color:#fff;font-weight:500}
+
+  /* Ansichtsfläche */
+  .stage{position:relative;flex:1;min-height:0;background:var(--viewport)}
+  canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+
+  #empty{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;padding:24px;gap:14px}
+  #empty.hidden{display:none}
+  .card{
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;
+    padding:26px 24px;max-width:340px;text-align:center;
+    display:grid;gap:14px;justify-items:center;
+  }
+  .card.over{border-color:var(--petrol);box-shadow:0 0 0 3px rgba(46,110,107,.12)}
+  .card h1{margin:0;font-size:16px;font-weight:700}
+  .card p{margin:0;font-size:13.5px;line-height:1.55;color:var(--muted)}
+  .card button{border-color:var(--petrol);background:var(--petrol);color:#fff}
+  #err{font-size:13px;color:#A6432F;min-height:1em;text-align:center}
+
+  /* Infoleiste */
+  .info{
+    flex:none;background:var(--surface);border-top:1px solid var(--border);
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+    display:flex;gap:22px;overflow-x:auto;
+  }
+  .info.hidden{display:none}
+  .field{min-width:0}
+  .field .label{
+    font-size:10px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:3px;white-space:nowrap;
+  }
+  .field .value{font-size:13.5px;font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .field.file{flex:1;min-width:90px}
+  .field.file .value{overflow:hidden;text-overflow:ellipsis}
+  .hint{
+    flex:none;font-size:11.5px;color:var(--muted);align-self:center;white-space:nowrap;
+  }
+  @media (max-width:560px){ .hint{display:none} }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="home" href="index.html">
+    <span class="mark">M</span>
+    <span class="crumb">MakerEdu</span>
+  </a>
+  <span class="crumb"><span class="sep">›</span><span class="tool">STL-Viewer</span></span>
+  <span class="grow"></span>
+  <button id="reset" hidden>Ansicht</button>
+  <button id="open" class="primary">Datei öffnen</button>
+</div>
+
+<div class="stage">
+  <canvas id="gl"></canvas>
+  <div id="empty">
+    <div class="card" id="drop">
+      <h1>Keine Datei geladen</h1>
+      <p>STL-Datei öffnen oder hierher ziehen. Die Datei bleibt auf dem Gerät, es wird nichts hochgeladen.</p>
+      <button id="open2">Datei öffnen</button>
+    </div>
+    <div id="err"></div>
+  </div>
+</div>
+
+<div class="info hidden" id="info">
+  <div class="field file"><div class="label">Datei</div><div class="value" id="v-file">–</div></div>
+  <div class="field"><div class="label">Dreiecke</div><div class="value" id="v-tri">–</div></div>
+  <div class="field"><div class="label">Abmessungen</div><div class="value" id="v-dim">–</div></div>
+  <div class="hint">Ziehen dreht · zwei Finger zoomen</div>
+</div>
+
+<input type="file" id="file" accept=".stl,model/stl,application/sla" hidden>
+
+<script>
+"use strict";
+(function(){
+
+/* ---------- Matrix-Helfer (column-major) ---------- */
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]];
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const norm=a=>{const l=Math.hypot(a[0],a[1],a[2])||1;return [a[0]/l,a[1]/l,a[2]/l];};
+
+function perspective(fovy,aspect,near,far){
+  const f=1/Math.tan(fovy/2), nf=1/(near-far);
+  return new Float32Array([f/aspect,0,0,0, 0,f,0,0, 0,0,(far+near)*nf,-1, 0,0,2*far*near*nf,0]);
+}
+function lookAt(eye,target,up){
+  const z=norm(sub(eye,target));
+  let x=cross(up,z);
+  if(Math.hypot(x[0],x[1],x[2])<1e-6) x=cross([0,1,0],z);
+  x=norm(x);
+  const y=cross(z,x);
+  return {m:new Float32Array([
+    x[0],y[0],z[0],0,
+    x[1],y[1],z[1],0,
+    x[2],y[2],z[2],0,
+    -dot(x,eye),-dot(y,eye),-dot(z,eye),1
+  ]), x, y, z};
+}
+
+/* ---------- STL einlesen ---------- */
+function parseSTL(buffer){
+  const dv=new DataView(buffer);
+  let ascii=true;
+  if(buffer.byteLength>=84){
+    const n=dv.getUint32(80,true);
+    if(84+n*50===buffer.byteLength) ascii=false;
+  }
+  return ascii ? parseAscii(buffer) : parseBinary(dv);
+}
+function parseBinary(dv){
+  const n=dv.getUint32(80,true);
+  const pos=new Float32Array(n*9);
+  let o=84,k=0;
+  for(let i=0;i<n;i++){
+    o+=12;                                   // Normale aus Datei ignorieren
+    for(let v=0;v<9;v++){ pos[k++]=dv.getFloat32(o,true); o+=4; }
+    o+=2;
+  }
+  return pos;
+}
+function parseAscii(buffer){
+  const text=new TextDecoder().decode(buffer);
+  const re=/vertex\s+(-?[\d.eE+-]+)\s+(-?[\d.eE+-]+)\s+(-?[\d.eE+-]+)/g;
+  const out=[]; let m;
+  while((m=re.exec(text))!==null){ out.push(+m[1],+m[2],+m[3]); }
+  if(out.length<9 || out.length%9!==0) throw new Error("Datei enthält keine gültigen Dreiecke.");
+  return new Float32Array(out);
+}
+function faceNormals(pos){
+  const nor=new Float32Array(pos.length);
+  for(let i=0;i<pos.length;i+=9){
+    const ax=pos[i+3]-pos[i], ay=pos[i+4]-pos[i+1], az=pos[i+5]-pos[i+2];
+    const bx=pos[i+6]-pos[i], by=pos[i+7]-pos[i+1], bz=pos[i+8]-pos[i+2];
+    let nx=ay*bz-az*by, ny=az*bx-ax*bz, nz=ax*by-ay*bx;
+    const l=Math.hypot(nx,ny,nz)||1; nx/=l; ny/=l; nz/=l;
+    for(let v=0;v<3;v++){ nor[i+v*3]=nx; nor[i+v*3+1]=ny; nor[i+v*3+2]=nz; }
+  }
+  return nor;
+}
+
+/* ---------- WebGL ---------- */
+const canvas=document.getElementById("gl");
+const gl=canvas.getContext("webgl",{antialias:true,alpha:false});
+if(!gl){ document.getElementById("err").textContent="WebGL ist auf diesem Gerät nicht verfügbar."; return; }
+
+function program(vsSrc,fsSrc){
+  const c=(t,s)=>{const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);
+    if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh));return sh;};
+  const p=gl.createProgram();
+  gl.attachShader(p,c(gl.VERTEX_SHADER,vsSrc));
+  gl.attachShader(p,c(gl.FRAGMENT_SHADER,fsSrc));
+  gl.linkProgram(p);
+  if(!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  return p;
+}
+
+const meshProg=program(`
+  attribute vec3 aPos; attribute vec3 aNor;
+  uniform mat4 uProj, uView;
+  varying vec3 vN, vP;
+  void main(){ vec4 p=uView*vec4(aPos,1.0); vP=p.xyz; vN=mat3(uView)*aNor; gl_Position=uProj*p; }
+`,`
+  precision mediump float;
+  varying vec3 vN, vP;
+  uniform vec3 uColor;
+  void main(){
+    vec3 N=normalize(vN);
+    if(!gl_FrontFacing) N=-N;
+    vec3 V=normalize(-vP);
+    vec3 L1=normalize(vec3(0.30,0.60,0.80));
+    vec3 L2=normalize(vec3(-0.70,-0.20,0.30));
+    float d=max(dot(N,L1),0.0)*0.72+max(dot(N,L2),0.0)*0.18;
+    float amb=0.26+0.10*N.y;
+    float s=pow(max(dot(reflect(-L1,N),V),0.0),32.0)*0.12;
+    float edge=1.0-0.22*pow(1.0-max(dot(N,V),0.0),2.5);   // Silhouette leicht abdunkeln
+    gl_FragColor=vec4(uColor*(amb+d)*edge+vec3(s),1.0);
+  }
+`);
+
+const lineProg=program(`
+  attribute vec3 aPos;
+  uniform mat4 uProj, uView;
+  void main(){ gl_Position=uProj*uView*vec4(aPos,1.0); }
+`,`
+  precision mediump float;
+  uniform vec3 uColor;
+  void main(){ gl_FragColor=vec4(uColor,1.0); }
+`);
+
+const buf={pos:gl.createBuffer(), nor:gl.createBuffer(), grid:gl.createBuffer()};
+let triCount=0, gridCount=0;
+
+/* ---------- Kamera ---------- */
+const FOV=45*Math.PI/180;
+let az=-2.30, el=0.52, dist=10, target=[0,0,0], radius=1, dirty=true;
+
+function resize(){
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  const w=Math.round(canvas.clientWidth*dpr), h=Math.round(canvas.clientHeight*dpr);
+  if(canvas.width!==w||canvas.height!==h){ canvas.width=w; canvas.height=h; dirty=true; }
+}
+function camera(){
+  const ce=Math.cos(el);
+  const eye=[target[0]+dist*ce*Math.cos(az), target[1]+dist*ce*Math.sin(az), target[2]+dist*Math.sin(el)];
+  return lookAt(eye,target,[0,0,1]);
+}
+function render(){
+  resize();
+  gl.viewport(0,0,canvas.width,canvas.height);
+  gl.clearColor(0.929,0.922,0.906,1);          // --viewport #EDEBE7
+  gl.enable(gl.DEPTH_TEST);
+  gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  if(!triCount) return;
+
+  const cam=camera();
+  const proj=perspective(FOV, canvas.width/canvas.height,
+    Math.max(dist*0.01, radius*0.002), dist+radius*8);
+
+  if(gridCount){
+    gl.useProgram(lineProg);
+    gl.uniformMatrix4fv(gl.getUniformLocation(lineProg,"uProj"),false,proj);
+    gl.uniformMatrix4fv(gl.getUniformLocation(lineProg,"uView"),false,cam.m);
+    gl.uniform3f(gl.getUniformLocation(lineProg,"uColor"),0.847,0.835,0.808); // #D8D5CE
+    const a=gl.getAttribLocation(lineProg,"aPos");
+    gl.bindBuffer(gl.ARRAY_BUFFER,buf.grid);
+    gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a,3,gl.FLOAT,false,0,0);
+    gl.drawArrays(gl.LINES,0,gridCount);
+  }
+
+  gl.useProgram(meshProg);
+  gl.uniformMatrix4fv(gl.getUniformLocation(meshProg,"uProj"),false,proj);
+  gl.uniformMatrix4fv(gl.getUniformLocation(meshProg,"uView"),false,cam.m);
+  gl.uniform3f(gl.getUniformLocation(meshProg,"uColor"),0.80,0.79,0.77);
+  const ap=gl.getAttribLocation(meshProg,"aPos"), an=gl.getAttribLocation(meshProg,"aNor");
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf.pos);
+  gl.enableVertexAttribArray(ap); gl.vertexAttribPointer(ap,3,gl.FLOAT,false,0,0);
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf.nor);
+  gl.enableVertexAttribArray(an); gl.vertexAttribPointer(an,3,gl.FLOAT,false,0,0);
+  gl.drawArrays(gl.TRIANGLES,0,triCount*3);
+}
+function loop(){ if(dirty){ dirty=false; render(); } requestAnimationFrame(loop); }
+requestAnimationFrame(loop);
+window.addEventListener("resize",()=>{dirty=true;});
+
+/* ---------- Modell laden ---------- */
+function niceStep(span){
+  const raw=span/8, p=Math.pow(10,Math.floor(Math.log10(raw))), f=raw/p;
+  return (f<1.5?1:f<3.5?2:f<7.5?5:10)*p;
+}
+function buildGrid(min,max){
+  const step=niceStep(Math.max(max[0]-min[0],max[1]-min[1]));
+  const pad=step*2;
+  const x0=Math.floor((min[0]-pad)/step)*step, x1=Math.ceil((max[0]+pad)/step)*step;
+  const y0=Math.floor((min[1]-pad)/step)*step, y1=Math.ceil((max[1]+pad)/step)*step;
+  const z=min[2], v=[];
+  for(let x=x0;x<=x1+1e-6;x+=step) v.push(x,y0,z, x,y1,z);
+  for(let y=y0;y<=y1+1e-6;y+=step) v.push(x0,y,z, x1,y,z);
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf.grid);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(v),gl.STATIC_DRAW);
+  gridCount=v.length/3;
+}
+const fmt=n=>(Math.round(n*100)/100).toLocaleString("de-CH");
+
+let lastSize=[1,1,1];
+function resetView(size){
+  if(size) lastSize=size;
+  target=[0,0,lastSize[2]/2];
+  az=-2.30; el=0.52;
+  dist=radius/Math.sin(FOV/2)*1.15;
+  dirty=true;
+}
+
+function load(pos,name){
+  const min=[Infinity,Infinity,Infinity], max=[-Infinity,-Infinity,-Infinity];
+  for(let i=0;i<pos.length;i+=3){
+    for(let k=0;k<3;k++){ const v=pos[i+k]; if(v<min[k])min[k]=v; if(v>max[k])max[k]=v; }
+  }
+  const size=[max[0]-min[0],max[1]-min[1],max[2]-min[2]];
+  const off=[(min[0]+max[0])/2,(min[1]+max[1])/2,min[2]];   // zentrieren, Unterkante auf z=0
+  for(let i=0;i<pos.length;i+=3){ pos[i]-=off[0]; pos[i+1]-=off[1]; pos[i+2]-=off[2]; }
+
+  const nor=faceNormals(pos);
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf.pos); gl.bufferData(gl.ARRAY_BUFFER,pos,gl.STATIC_DRAW);
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf.nor); gl.bufferData(gl.ARRAY_BUFFER,nor,gl.STATIC_DRAW);
+  triCount=pos.length/9;
+
+  buildGrid([-size[0]/2,-size[1]/2,0],[size[0]/2,size[1]/2,0]);
+  radius=Math.hypot(size[0],size[1],size[2])/2 || 1;
+  resetView(size);
+
+  document.getElementById("v-file").textContent=name;
+  document.getElementById("v-tri").textContent=triCount.toLocaleString("de-CH");
+  document.getElementById("v-dim").textContent=fmt(size[0])+" × "+fmt(size[1])+" × "+fmt(size[2])+" mm";
+  document.getElementById("info").classList.remove("hidden");
+  document.getElementById("empty").classList.add("hidden");
+  document.getElementById("reset").hidden=false;
+}
+
+function openFile(file){
+  const err=document.getElementById("err");
+  err.textContent="";
+  const r=new FileReader();
+  r.onload=()=>{ try{ load(parseSTL(r.result),file.name); }
+                 catch(e){ err.textContent="Datei konnte nicht gelesen werden: "+e.message; } };
+  r.onerror=()=>{ err.textContent="Datei konnte nicht gelesen werden."; };
+  r.readAsArrayBuffer(file);
+}
+
+/* ---------- Bedienung ---------- */
+const input=document.getElementById("file");
+const pick=()=>input.click();
+document.getElementById("open").addEventListener("click",pick);
+document.getElementById("open2").addEventListener("click",pick);
+document.getElementById("reset").addEventListener("click",()=>resetView());
+input.addEventListener("change",()=>{ if(input.files[0]) openFile(input.files[0]); input.value=""; });
+
+const drop=document.getElementById("drop");
+["dragenter","dragover"].forEach(t=>document.addEventListener(t,e=>{e.preventDefault();drop.classList.add("over");}));
+["dragleave","drop"].forEach(t=>document.addEventListener(t,e=>{e.preventDefault();drop.classList.remove("over");}));
+document.addEventListener("drop",e=>{ const f=e.dataTransfer.files[0]; if(f) openFile(f); });
+
+const pointers=new Map();
+let prevDist=null, prevMid=null;
+const pixelScale=()=>2*Math.tan(FOV/2)*dist/canvas.clientHeight;
+
+function orbit(dx,dy){ az-=dx*0.008; el=Math.max(-1.53,Math.min(1.53,el+dy*0.008)); dirty=true; }
+function pan(dx,dy){
+  const cam=camera(), k=pixelScale();
+  for(let i=0;i<3;i++) target[i]+= -cam.x[i]*dx*k + cam.y[i]*dy*k;
+  dirty=true;
+}
+function zoom(f){ dist=Math.max(radius*0.05,Math.min(radius*60,dist*f)); dirty=true; }
+
+canvas.addEventListener("pointerdown",e=>{
+  canvas.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  prevDist=null; prevMid=null;
+});
+canvas.addEventListener("pointermove",e=>{
+  const p=pointers.get(e.pointerId); if(!p) return;
+  const dx=e.clientX-p.x, dy=e.clientY-p.y;
+  p.x=e.clientX; p.y=e.clientY;
+  if(pointers.size===1){
+    if(e.shiftKey || (e.buttons&2)) pan(dx,dy); else orbit(dx,dy);
+  }else if(pointers.size===2){
+    const [a,b]=[...pointers.values()];
+    const d=Math.hypot(a.x-b.x,a.y-b.y);
+    const mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+    if(prevDist){ zoom(prevDist/d); pan(mid.x-prevMid.x,mid.y-prevMid.y); }
+    prevDist=d; prevMid=mid;
+  }
+});
+["pointerup","pointercancel"].forEach(t=>canvas.addEventListener(t,e=>{
+  pointers.delete(e.pointerId); prevDist=null; prevMid=null;
+}));
+canvas.addEventListener("wheel",e=>{ e.preventDefault(); zoom(Math.exp(e.deltaY*0.0015)); },{passive:false});
+canvas.addEventListener("contextmenu",e=>e.preventDefault());
+window.addEventListener("keydown",e=>{ if(e.key==="r"||e.key==="R") resetView(); });
+
+})();
+</script>
+</body>
+</html>
